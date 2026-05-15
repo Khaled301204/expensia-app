@@ -1,0 +1,127 @@
+import 'package:flutter/material.dart';
+import '../../data/models/expense.dart';
+import '../../data/repositories/expense_repository.dart';
+
+class ExpenseProvider with ChangeNotifier {
+  final ExpenseRepository _expenseRepository = ExpenseRepository();
+  
+  List<Expense> _expenses = [];
+  bool _isLoading = false;
+  String? _error;
+
+  List<Expense> get expenses => _expenses;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  double get totalExpenses {
+    return _expenses.fold(0.0, (sum, expense) => sum + expense.amount);
+  }
+
+  // Load expenses
+  Future<void> loadExpenses({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _expenses = await _expenseRepository.getExpenses(
+        startDate: startDate,
+        endDate: endDate,
+      );
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Create expense
+  Future<bool> createExpense({
+    required double amount,
+    required int categoryId,
+    required DateTime date,
+    String? description,
+    String? merchant,
+    String? paymentMethod,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final expense = await _expenseRepository.createExpense(
+        amount: amount,
+        categoryId: categoryId,
+        date: date,
+        description: description,
+        merchant: merchant,
+        paymentMethod: paymentMethod,
+      );
+      _expenses.insert(0, expense);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Create voice expense
+  Future<bool> createVoiceExpense(String audioFilePath) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final expense = await _expenseRepository.createVoiceExpense(audioFilePath);
+      _expenses.insert(0, expense);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Delete expense
+  Future<bool> deleteExpense(int id) async {
+    try {
+      await _expenseRepository.deleteExpense(id);
+      _expenses.removeWhere((expense) => expense.id == id);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Get expenses by category
+  List<Expense> getExpensesByCategory(String category) {
+    return _expenses.where((e) => e.categoryName == category).toList();
+  }
+
+  // Get expenses by date range
+  List<Expense> getExpensesByDateRange(DateTime start, DateTime end) {
+    return _expenses.where((e) => 
+      e.date.isAfter(start) && e.date.isBefore(end)
+    ).toList();
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
+}

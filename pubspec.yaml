@@ -1,0 +1,55 @@
+name: expensia_app
+description: AI-Powered Personal Finance Management System
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # HTTP & API
+  dio: ^5.4.0
+  http: ^1.1.2
+  
+  # Local Storage
+  shared_preferences: ^2.2.2
+  
+  # Charts & Visualization
+  fl_chart: ^0.66.0
+  
+  # Voice Recording
+  record: ^5.0.4
+  permission_handler: ^11.1.0
+  
+  # UI Components
+  cupertino_icons: ^1.0.6
+  intl: ^0.18.1
+  
+  # Utilities
+  flutter_svg: ^2.0.9
+  cached_network_image: ^3.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+  
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
