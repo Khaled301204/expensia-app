@@ -18,16 +18,18 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'] ?? json['userId'],
-      email: json['email'],
-      name: json['name'],
-      phone: json['phone'],
-      riskPreference: json['riskPreference'],
-      createdAt: DateTime.parse(json['createdAt']),
-      isActive: json['isActive'] ?? true,
-    );
-  }
+  return User(
+    id: json['id'] ?? json['userId'],
+    email: json['email'],
+    name: json['name'],
+    phone: json['phone'],
+    riskPreference: json['riskPreference'],
+    createdAt: json['createdAt'] != null
+        ? DateTime.parse(json['createdAt'])
+        : DateTime.now(),
+    isActive: json['isActive'] ?? true,
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {

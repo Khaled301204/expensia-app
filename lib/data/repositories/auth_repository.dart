@@ -27,7 +27,7 @@ class AuthRepository {
     if (response.data['success']) {
       final data = response.data['data'];
       final token = data['token'];
-      final user = User.fromJson(data['user']);
+      final user = User.fromJson(data);
 
       await _storageService.saveToken(token);
       await _storageService.saveUser(user);
@@ -54,7 +54,7 @@ class AuthRepository {
     if (response.data['success']) {
       final data = response.data['data'];
       final token = data['token'];
-      final user = User.fromJson(data['user']);
+      final user = User.fromJson(data);
 
       await _storageService.saveToken(token);
       await _storageService.saveUser(user);

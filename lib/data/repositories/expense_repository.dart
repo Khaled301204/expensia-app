@@ -25,7 +25,7 @@ class ExpenseRepository {
     );
 
     if (response.data['success']) {
-      final List expensesJson = response.data['data']['expenses'];
+      final List expensesJson = response.data['data'];
       return expensesJson.map((json) => Expense.fromJson(json)).toList();
     }
 

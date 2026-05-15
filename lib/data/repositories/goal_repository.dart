@@ -24,7 +24,7 @@ class GoalRepository {
       data: {
         'name': name,
         'targetAmount': targetAmount,
-        'deadline': deadline.toIso8601String(),
+        'deadline': deadline.toIso8601String().split('T')[0],
       },
     );
     if (response.data['success']) {
@@ -34,10 +34,10 @@ class GoalRepository {
   }
 
   Future<Goal> addSavings(int goalId, double amount) async {
-    final response = await _apiService.patch(
-      '${AppConfig.goalsEndpoint}/$goalId/add-savings',
-      data: {'amount': amount},
-    );
+    final response = await _apiService.post(
+    '${AppConfig.goalsEndpoint}/$goalId/savings',
+    data: {'amount': amount},
+);
     if (response.data['success']) {
       return Goal.fromJson(response.data['data']);
     }
