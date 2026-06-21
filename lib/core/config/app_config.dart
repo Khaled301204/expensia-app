@@ -16,6 +16,11 @@ class AppConfig {
   static const String reportsEndpoint = '/reports';
   static const String notificationsEndpoint = '/notifications';
   static const String voiceExpenseEndpoint = '/expenses/voice';
+  static const String voicePreviewEndpoint = '/expenses/voice/preview';
+  static const String voiceConfirmEndpoint = '/expenses/voice/confirm';
+  static const String dashboardEndpoint = '/reports/dashboard';
+  static const String insightsEndpoint = '/reports/insights';
+  static const String categoriesEndpoint = '/categories';
   
   // AI Service Endpoints
   static const String speechToTextEndpoint = '/speech-to-text';

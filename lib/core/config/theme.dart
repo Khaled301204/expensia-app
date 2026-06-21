@@ -30,7 +30,6 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       error: errorColor,
-      background: lightBackground,
       surface: lightSurface,
     ),
     appBarTheme: const AppBarTheme(
@@ -43,7 +42,7 @@ class AppTheme {
         fontWeight: FontWeight.bold,
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: lightSurface,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -97,7 +96,6 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       error: errorColor,
-      background: darkBackground,
       surface: darkSurface,
     ),
     appBarTheme: const AppBarTheme(
@@ -110,7 +108,7 @@ class AppTheme {
         fontWeight: FontWeight.bold,
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: darkSurface,
       elevation: 2,
       shape: RoundedRectangleBorder(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/expense.dart';
+import '../../data/models/voice_preview.dart';
 import '../../data/repositories/expense_repository.dart';
 
 class ExpenseProvider with ChangeNotifier {
@@ -74,14 +75,31 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
-  // Create voice expense
-  Future<bool> createVoiceExpense(String audioFilePath) async {
+  // Step 1: Get voice expense preview (no expense created yet)
+  Future<VoicePreview?> previewVoiceExpense(String audioFilePath) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
-      final expense = await _expenseRepository.createVoiceExpense(audioFilePath);
+      final preview = await _expenseRepository.previewVoiceExpense(audioFilePath);
+      _isLoading = false;
+      notifyListeners();
+      return preview;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  // Step 2: Confirm and create the expense from corrected preview data
+  Future<bool> confirmVoiceExpense(VoicePreview preview) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final expense = await _expenseRepository.confirmVoiceExpense(preview);
       _expenses.insert(0, expense);
       _isLoading = false;
       notifyListeners();

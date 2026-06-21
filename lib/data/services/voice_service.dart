@@ -41,8 +41,7 @@ class VoiceService {
       );
 
       return true;
-    } catch (e) {
-      print('Error starting recording: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -52,8 +51,7 @@ class VoiceService {
     try {
       final path = await _recorder.stop();
       return path;
-    } catch (e) {
-      print('Error stopping recording: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -68,8 +66,7 @@ class VoiceService {
           await file.delete();
         }
       }
-    } catch (e) {
-      print('Error cancelling recording: $e');
+    } catch (_) {
     }
   }
 

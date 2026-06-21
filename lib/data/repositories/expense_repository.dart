@@ -1,4 +1,5 @@
 import '../models/expense.dart';
+import '../models/voice_preview.dart';
 import '../services/api_service.dart';
 import '../../core/config/app_config.dart';
 
@@ -71,18 +72,28 @@ class ExpenseRepository {
     throw Exception(response.data['message'] ?? 'Failed to create expense');
   }
 
-  // Create voice expense
-  Future<Expense> createVoiceExpense(String audioFilePath) async {
+  // Step 1: Preview voice expense (returns editable preview, no expense created yet)
+  Future<VoicePreview> previewVoiceExpense(String audioFilePath) async {
     final response = await _apiService.uploadFile(
-      AppConfig.voiceExpenseEndpoint,
+      AppConfig.voicePreviewEndpoint,
       audioFilePath,
     );
+    final body = response.data;
+    final data = (body is Map && body['success'] == true) ? body['data'] : body;
+    return VoicePreview.fromJson(data);
+  }
 
-    if (response.data['success']) {
-      return Expense.fromJson(response.data['data']['expense']);
+  // Step 2: Confirm and create the expense from corrected preview data
+  Future<Expense> confirmVoiceExpense(VoicePreview preview) async {
+    final response = await _apiService.post(
+      AppConfig.voiceConfirmEndpoint,
+      data: preview.toConfirmJson(),
+    );
+    final body = response.data;
+    if (body is Map && body['success'] == true) {
+      return Expense.fromJson(body['data']);
     }
-
-    throw Exception(response.data['message'] ?? 'Failed to create voice expense');
+    throw Exception(body['message'] ?? 'Failed to confirm voice expense');
   }
 
   // Update expense

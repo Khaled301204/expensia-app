@@ -10,6 +10,8 @@ import '../presentation/screens/budgets/add_budget_screen.dart';
 import '../presentation/screens/goals/goals_screen.dart';
 import '../presentation/screens/goals/add_goal_screen.dart';
 import '../presentation/screens/reports/reports_screen.dart';
+import '../presentation/screens/notifications/notifications_screen.dart';
+import '../presentation/screens/insights/insights_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -24,43 +26,52 @@ class AppRouter {
   static const String goals = '/goals';
   static const String addGoal = '/goals/add';
   static const String reports = '/reports';
+  static const String notifications = '/notifications';
+  static const String insights = '/insights';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
       case login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
-      
+
       case register:
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
-      
+
       case home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
-      
+
       case expenseList:
         return MaterialPageRoute(builder: (_) => const ExpenseListScreen());
-      
+
       case addExpense:
         return MaterialPageRoute(builder: (_) => const AddExpenseScreen());
-      
+
       case voiceExpense:
         return MaterialPageRoute(builder: (_) => const VoiceExpenseScreen());
-      
+
       case budgetList:
         return MaterialPageRoute(builder: (_) => const BudgetListScreen());
-      
+
       case addBudget:
         return MaterialPageRoute(builder: (_) => const AddBudgetScreen());
-      
+
       case goals:
         return MaterialPageRoute(builder: (_) => const GoalsScreen());
-      
+
       case addGoal:
         return MaterialPageRoute(builder: (_) => const AddGoalScreen());
-      
+
       case reports:
         return MaterialPageRoute(builder: (_) => const ReportsScreen());
-      
+
+      case notifications:
+        return MaterialPageRoute(
+            builder: (_) => const NotificationsScreen());
+
+      case insights:
+        return MaterialPageRoute(builder: (_) => const InsightsScreen());
+
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
