@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/config/theme.dart';
 import '../../providers/income_provider.dart';
+import '../../providers/dashboard_provider.dart';
 
 class AddIncomeScreen extends StatefulWidget {
   const AddIncomeScreen({super.key});
@@ -218,6 +219,7 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
 
     if (!mounted) return;
     if (ok) {
+      context.read<DashboardProvider>().loadDashboard();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Income added successfully!')));
       Navigator.pop(context);

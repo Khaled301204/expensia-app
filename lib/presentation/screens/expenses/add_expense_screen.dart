@@ -9,6 +9,7 @@ import '../../../data/repositories/category_repository.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/config/app_config.dart';
 import '../../providers/expense_provider.dart';
+import '../../providers/dashboard_provider.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -130,6 +131,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
     if (!mounted) return;
     if (ok) {
+      context.read<DashboardProvider>().loadDashboard();
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Expense added!')));
       Navigator.pop(context);

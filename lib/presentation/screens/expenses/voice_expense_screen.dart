@@ -8,6 +8,7 @@ import '../../../data/models/voice_preview.dart';
 import '../../../data/repositories/category_repository.dart';
 import '../../../data/services/voice_service.dart';
 import '../../providers/expense_provider.dart';
+import '../../providers/dashboard_provider.dart';
 
 enum _VoiceStep { idle, recording, processing, preview, confirming, done }
 
@@ -163,6 +164,7 @@ class _VoiceExpenseScreenState extends State<VoiceExpenseScreen>
 
     if (!mounted) return;
     if (success) {
+      context.read<DashboardProvider>().loadDashboard();
       setState(() => _step = _VoiceStep.done);
     } else {
       setState(() {
