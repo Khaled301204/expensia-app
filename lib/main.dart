@@ -10,6 +10,8 @@ import 'presentation/providers/notification_provider.dart';
 import 'presentation/providers/insights_provider.dart';
 import 'presentation/providers/dashboard_provider.dart';
 import 'presentation/providers/income_provider.dart';
+import 'presentation/providers/reports_provider.dart';
+import 'presentation/providers/wallet_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +27,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => InsightsProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => IncomeProvider()),
+        ChangeNotifierProvider(create: (_) => ReportsProvider()),
+        ChangeNotifierProvider(create: (_) => WalletProvider()),
       ],
       child: const ExpensiaApp(),
     ),
