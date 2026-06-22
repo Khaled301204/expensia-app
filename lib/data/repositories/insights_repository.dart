@@ -8,7 +8,9 @@ class InsightsRepository {
 
   Future<FinancialInsights> getInsights() async {
     final response = await _apiService.get(AppConfig.insightsEndpoint);
-    return FinancialInsights.fromJson(response.data);
+    final body = response.data;
+    final data = (body is Map && body['success'] == true) ? body['data'] : body;
+    return FinancialInsights.fromJson(data);
   }
 
   Future<DashboardData> getDashboard() async {

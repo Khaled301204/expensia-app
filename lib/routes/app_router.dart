@@ -5,6 +5,8 @@ import '../presentation/screens/home/home_screen.dart';
 import '../presentation/screens/expenses/expense_list_screen.dart';
 import '../presentation/screens/expenses/add_expense_screen.dart';
 import '../presentation/screens/expenses/voice_expense_screen.dart';
+import '../presentation/screens/incomes/income_list_screen.dart';
+import '../presentation/screens/incomes/add_income_screen.dart';
 import '../presentation/screens/budgets/budget_list_screen.dart';
 import '../presentation/screens/budgets/add_budget_screen.dart';
 import '../presentation/screens/goals/goals_screen.dart';
@@ -21,6 +23,8 @@ class AppRouter {
   static const String expenseList = '/expenses';
   static const String addExpense = '/expenses/add';
   static const String voiceExpense = '/expenses/voice';
+  static const String incomeList = '/incomes';
+  static const String addIncome = '/incomes/add';
   static const String budgetList = '/budgets';
   static const String addBudget = '/budgets/add';
   static const String goals = '/goals';
@@ -49,6 +53,12 @@ class AppRouter {
 
       case voiceExpense:
         return MaterialPageRoute(builder: (_) => const VoiceExpenseScreen());
+
+      case incomeList:
+        return MaterialPageRoute(builder: (_) => const IncomeListScreen());
+
+      case addIncome:
+        return MaterialPageRoute(builder: (_) => const AddIncomeScreen());
 
       case budgetList:
         return MaterialPageRoute(builder: (_) => const BudgetListScreen());

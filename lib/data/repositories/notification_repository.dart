@@ -20,14 +20,8 @@ class NotificationRepository {
   }
 
   Future<void> markAsRead(int notificationId) async {
-    await _apiService.patch(
+    await _apiService.put(
       '${AppConfig.notificationsEndpoint}/$notificationId/read',
-    );
-  }
-
-  Future<void> markAllAsRead() async {
-    await _apiService.patch(
-      '${AppConfig.notificationsEndpoint}/read-all',
     );
   }
 }

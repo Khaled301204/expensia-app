@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../routes/app_router.dart';
 import '../../../core/config/theme.dart';
 import '../../providers/auth_provider.dart';
@@ -10,7 +11,6 @@ import '../../providers/notification_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -22,574 +22,415 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
-  Future<void> _loadData() async {
-    await Future.wait([
-      context.read<DashboardProvider>().loadDashboard(),
-      context.read<BudgetProvider>().loadBudgets(),
-      context.read<GoalProvider>().loadGoals(),
-      context.read<NotificationProvider>().loadNotifications(),
-    ]);
-  }
+  Future<void> _loadData() => Future.wait([
+    context.read<DashboardProvider>().loadDashboard(),
+    context.read<BudgetProvider>().loadBudgets(),
+    context.read<GoalProvider>().loadGoals(),
+    context.read<NotificationProvider>().loadNotifications(),
+  ]);
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final user = authProvider.user;
-
+    final user = context.watch<AuthProvider>().user;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Expensia'),
-        actions: [
-          Consumer<NotificationProvider>(
-            builder: (context, notifProvider, _) {
-              final unread = notifProvider.unreadCount;
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRouter.notifications),
-                  ),
-                  if (unread > 0)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: AppTheme.errorColor,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          unread > 9 ? '9+' : '$unread',
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 9),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authProvider.logout();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, AppRouter.login);
-              }
-            },
-          ),
-        ],
-      ),
+      backgroundColor: AppTheme.darkBg,
       body: RefreshIndicator(
         onRefresh: _loadData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _WelcomeBanner(userName: user?.name ?? 'User'),
-              const SizedBox(height: 20),
-              const _DashboardCards(),
-              const SizedBox(height: 24),
-              _SectionTitle(
-                title: 'Quick Actions',
-                onSeeAll: null,
-              ),
-              const SizedBox(height: 12),
-              const _QuickActionsGrid(),
-              const SizedBox(height: 24),
-              _SectionTitle(
-                title: 'Budget Overview',
-                onSeeAll: () =>
-                    Navigator.pushNamed(context, AppRouter.budgetList),
-              ),
-              const SizedBox(height: 12),
-              const _BudgetSummary(),
-              const SizedBox(height: 24),
-              _SectionTitle(
-                title: 'Savings Goals',
-                onSeeAll: () => Navigator.pushNamed(context, AppRouter.goals),
-              ),
-              const SizedBox(height: 12),
-              const _GoalsSummary(),
-              const SizedBox(height: 16),
-            ],
+        color: AppTheme.primaryColor,
+        backgroundColor: AppTheme.darkCard,
+        child: CustomScrollView(slivers: [
+          _buildAppBar(context, user?.name ?? 'User'),
+          SliverToBoxAdapter(child: _BalanceHeroCard()),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 40),
+            sliver: SliverList(delegate: SliverChildListDelegate([
+              _SectionLabel('Quick Actions'),
+              const SizedBox(height: 14),
+              const _QuickActions(),
+              const SizedBox(height: 32),
+              _SectionLabel('Budgets',
+                  onSeeAll: () => Navigator.pushNamed(context, AppRouter.budgetList)),
+              const SizedBox(height: 14),
+              const _BudgetPreview(),
+              const SizedBox(height: 32),
+              _SectionLabel('Savings Goals',
+                  onSeeAll: () => Navigator.pushNamed(context, AppRouter.goals)),
+              const SizedBox(height: 14),
+              const _GoalsPreview(),
+            ])),
           ),
-        ),
+        ]),
       ),
     );
   }
-}
 
-class _WelcomeBanner extends StatelessWidget {
-  final String userName;
-  const _WelcomeBanner({required this.userName});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, String name) {
     final hour = DateTime.now().hour;
-    final greeting = hour < 12
-        ? 'Good Morning'
-        : hour < 17
-            ? 'Good Afternoon'
-            : 'Good Evening';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppTheme.primaryColor, Color(0xFF9C8FFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$greeting,',
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            userName,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Here\'s your financial overview',
-            style: TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DashboardCards extends StatelessWidget {
-  const _DashboardCards();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<DashboardProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return const Center(
-              child: Padding(
-            padding: EdgeInsets.all(24),
-            child: CircularProgressIndicator(),
-          ));
-        }
-        final d = provider.data;
-        return Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    label: 'Balance',
-                    value: 'EGP ${d.currentBalance.toStringAsFixed(0)}',
-                    icon: Icons.account_balance_wallet,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    label: 'Savings',
-                    value: 'EGP ${d.currentSavings.toStringAsFixed(0)}',
-                    icon: Icons.savings,
-                    color: AppTheme.secondaryColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    label: 'Income',
-                    value: 'EGP ${d.totalIncome.toStringAsFixed(0)}',
-                    icon: Icons.trending_up,
-                    color: const Color(0xFF26A69A),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    label: 'Expenses',
-                    value: 'EGP ${d.totalExpenses.toStringAsFixed(0)}',
-                    icon: Icons.trending_down,
-                    color: AppTheme.errorColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    label: 'Budgets',
-                    value: '${d.totalBudgets}',
-                    icon: Icons.pie_chart,
-                    color: AppTheme.warningColor,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    label: 'Active Goals',
-                    value: '${d.activeGoals}',
-                    icon: Icons.flag,
-                    color: const Color(0xFF7E57C2),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final VoidCallback? onSeeAll;
-
-  const _SectionTitle({required this.title, this.onSeeAll});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
-        if (onSeeAll != null)
-          TextButton(
-            onPressed: onSeeAll,
-            child: const Text('See All'),
-          ),
-      ],
-    );
-  }
-}
-
-class _QuickActionsGrid extends StatelessWidget {
-  const _QuickActionsGrid();
-
-  @override
-  Widget build(BuildContext context) {
-    final actions = [
-      _Action('Add Expense', Icons.add_circle_outline, AppTheme.errorColor,
-          AppRouter.addExpense),
-      _Action('Voice Expense', Icons.mic_outlined, AppTheme.primaryColor,
-          AppRouter.voiceExpense),
-      _Action('Budgets', Icons.account_balance_wallet_outlined,
-          AppTheme.warningColor, AppRouter.budgetList),
-      _Action('Goals', Icons.flag_outlined, AppTheme.secondaryColor,
-          AppRouter.goals),
-      _Action('Reports', Icons.bar_chart_outlined, const Color(0xFF26A69A),
-          AppRouter.reports),
-      _Action('AI Insights', Icons.psychology_outlined,
-          const Color(0xFF7E57C2), AppRouter.insights),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.9,
-      ),
-      itemCount: actions.length,
-      itemBuilder: (context, i) {
-        final a = actions[i];
-        return Card(
-          child: InkWell(
-            onTap: () => Navigator.pushNamed(context, a.route),
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: a.color.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(a.icon, color: a.color, size: 24),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    a.label,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w600, fontSize: 11),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _Action {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final String route;
-  _Action(this.label, this.icon, this.color, this.route);
-}
-
-class _BudgetSummary extends StatelessWidget {
-  const _BudgetSummary();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<BudgetProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (provider.budgets.isEmpty) {
-          return _EmptyHint(
-            message: 'No budgets yet',
-            actionLabel: 'Create Budget',
-            onTap: () => Navigator.pushNamed(context, AppRouter.addBudget),
-          );
-        }
-        final shown = provider.budgets.take(3).toList();
-        return Column(
-          children: shown.map((b) {
-            final pct = (b.spentAmount / b.limitAmount).clamp(0.0, 1.0);
-            final color = b.isOverBudget
-                ? AppTheme.errorColor
-                : pct >= 0.8
-                    ? AppTheme.warningColor
-                    : AppTheme.secondaryColor;
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(b.categoryName,
-                            style: Theme.of(context).textTheme.bodyLarge),
-                        Text(
-                          'EGP ${b.spentAmount.toStringAsFixed(0)} / ${b.limitAmount.toStringAsFixed(0)}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: color),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: pct,
-                        backgroundColor: color.withValues(alpha: 0.15),
-                        valueColor: AlwaysStoppedAnimation(color),
-                        minHeight: 6,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-}
-
-class _GoalsSummary extends StatelessWidget {
-  const _GoalsSummary();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<GoalProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (provider.goals.isEmpty) {
-          return _EmptyHint(
-            message: 'No goals yet',
-            actionLabel: 'Create Goal',
-            onTap: () => Navigator.pushNamed(context, AppRouter.addGoal),
-          );
-        }
-        final shown = provider.goals.take(2).toList();
-        return Column(
-          children: shown.map((g) {
-            final pct = (g.currentAmount / g.targetAmount).clamp(0.0, 1.0);
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(g.name,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                              overflow: TextOverflow.ellipsis),
-                        ),
-                        Text(
-                          '${(pct * 100).toStringAsFixed(0)}%',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: AppTheme.primaryColor),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'EGP ${g.currentAmount.toStringAsFixed(0)} of ${g.targetAmount.toStringAsFixed(0)}',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: pct,
-                        backgroundColor:
-                            AppTheme.primaryColor.withValues(alpha: 0.15),
-                        valueColor: const AlwaysStoppedAnimation(
-                            AppTheme.primaryColor),
-                        minHeight: 6,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-}
-
-class _EmptyHint extends StatelessWidget {
-  final String message;
-  final String actionLabel;
-  final VoidCallback onTap;
-
-  const _EmptyHint({
-    required this.message,
-    required this.actionLabel,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Text(message,
-              style: Theme.of(context).textTheme.bodyMedium),
+    final greeting = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening';
+    return SliverAppBar(
+      backgroundColor: AppTheme.darkBg,
+      surfaceTintColor: Colors.transparent,
+      floating: true,
+      snap: true,
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      title: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Good $greeting', style: GoogleFonts.inter(
+              color: AppTheme.darkTextSec, fontSize: 12, fontWeight: FontWeight.w400,
+            )),
+            Text(name, style: GoogleFonts.inter(
+              color: AppTheme.darkTextPri, fontSize: 16, fontWeight: FontWeight.w700,
+            )),
+          ]),
           const Spacer(),
-          TextButton(onPressed: onTap, child: Text(actionLabel)),
-        ],
+          Consumer<NotificationProvider>(builder: (_, p, __) =>
+            Stack(clipBehavior: Clip.none, children: [
+              _IconBtn(
+                icon: Icons.notifications_outlined,
+                onTap: () => Navigator.pushNamed(context, AppRouter.notifications),
+              ),
+              if (p.unreadCount > 0)
+                Positioned(top: 0, right: 0, child: Container(
+                  width: 16, height: 16,
+                  decoration: const BoxDecoration(color: AppTheme.errorColor, shape: BoxShape.circle),
+                  child: Center(child: Text(
+                    '${p.unreadCount > 9 ? 9 : p.unreadCount}',
+                    style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                  )),
+                )),
+            ]),
+          ),
+          const SizedBox(width: 8),
+          _IconBtn(
+            icon: Icons.logout_outlined,
+            onTap: () async {
+              await context.read<AuthProvider>().logout();
+              if (context.mounted) Navigator.pushReplacementNamed(context, AppRouter.login);
+            },
+          ),
+        ]),
       ),
     );
   }
 }
+
+// ── Balance Hero Card ──────────────────────────────────────────────────────────
+
+class _BalanceHeroCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<DashboardProvider>(builder: (_, p, __) =>
+      Container(
+        margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.darkCard,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+          boxShadow: [AppTheme.blueGlow],
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Total Balance', style: GoogleFonts.inter(
+              color: AppTheme.darkTextSec, fontSize: 13,
+            )),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+              ),
+              child: Text('This Month', style: GoogleFonts.inter(
+                color: AppTheme.primaryColor, fontSize: 11, fontWeight: FontWeight.w500,
+              )),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          Text(
+            'EGP ${_fmt(p.data.currentBalance)}',
+            style: GoogleFonts.inter(
+              color: AppTheme.darkTextPri, fontSize: 34,
+              fontWeight: FontWeight.w800, letterSpacing: -1.0,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(children: [
+            Expanded(child: _MiniStat(
+              label: 'Income', value: p.data.totalIncome,
+              icon: Icons.arrow_downward_rounded, color: AppTheme.secondaryColor,
+            )),
+            Container(width: 1, height: 36, color: AppTheme.darkBorder),
+            Expanded(child: _MiniStat(
+              label: 'Expenses', value: p.data.totalExpenses,
+              icon: Icons.arrow_upward_rounded, color: AppTheme.errorColor,
+            )),
+            Container(width: 1, height: 36, color: AppTheme.darkBorder),
+            Expanded(child: _MiniStat(
+              label: 'Savings', value: p.data.currentSavings,
+              icon: Icons.savings_outlined, color: AppTheme.accentGold,
+            )),
+          ]),
+        ]),
+      ),
+    );
+  }
+
+  String _fmt(double v) => v.toStringAsFixed(2)
+      .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+}
+
+class _MiniStat extends StatelessWidget {
+  final String label; final double value; final IconData icon; final Color color;
+  const _MiniStat({required this.label, required this.value, required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Column(children: [
+    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Icon(icon, color: color, size: 14),
+      const SizedBox(width: 4),
+      Text(label, style: GoogleFonts.inter(color: AppTheme.darkTextSec, fontSize: 11)),
+    ]),
+    const SizedBox(height: 4),
+    Text('EGP ${value.toStringAsFixed(0)}', style: GoogleFonts.inter(
+      color: AppTheme.darkTextPri, fontSize: 13, fontWeight: FontWeight.w700,
+    )),
+  ]);
+}
+
+// ── Section label ──────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String title; final VoidCallback? onSeeAll;
+  const _SectionLabel(this.title, {this.onSeeAll});
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Text(title, style: GoogleFonts.inter(
+        color: AppTheme.darkTextPri, fontSize: 17, fontWeight: FontWeight.w600,
+      )),
+      if (onSeeAll != null)
+        GestureDetector(
+          onTap: onSeeAll,
+          child: Text('See all', style: GoogleFonts.inter(
+            color: AppTheme.primaryColor, fontSize: 13, fontWeight: FontWeight.w500,
+          )),
+        ),
+    ],
+  );
+}
+
+// ── Quick Actions ──────────────────────────────────────────────────────────────
+
+class _QuickActions extends StatelessWidget {
+  const _QuickActions();
+
+  static const _items = [
+    _QA('Add Expense',  Icons.remove_circle_outline,           AppTheme.errorColor,     AppRouter.addExpense),
+    _QA('Add Income',   Icons.add_circle_outline,              AppTheme.secondaryColor, AppRouter.addIncome),
+    _QA('Voice',        Icons.mic_outlined,                    AppTheme.primaryColor,   AppRouter.voiceExpense),
+    _QA('Budgets',      Icons.account_balance_wallet_outlined, AppTheme.warningColor,   AppRouter.budgetList),
+    _QA('Goals',        Icons.flag_outlined,                   AppTheme.accentPurple,   AppRouter.goals),
+    _QA('Reports',      Icons.bar_chart_outlined,              Color(0xFF38BDF8),       AppRouter.reports),
+    _QA('AI Insights',  Icons.psychology_outlined,             AppTheme.accentGold,     AppRouter.insights),
+  ];
+
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    clipBehavior: Clip.none,
+    child: Row(children: _items.map((a) => Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: () => Navigator.pushNamed(context, a.route),
+        child: Container(
+          width: 76,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.darkCard,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.darkBorder),
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 44, height: 44,
+              decoration: BoxDecoration(
+                color: a.color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(a.icon, color: a.color, size: 22),
+            ),
+            const SizedBox(height: 10),
+            Text(a.label, style: GoogleFonts.inter(
+              color: AppTheme.darkTextPri, fontSize: 10, fontWeight: FontWeight.w500,
+            ), textAlign: TextAlign.center, maxLines: 2),
+          ]),
+        ),
+      ),
+    )).toList()),
+  );
+}
+
+class _QA {
+  final String label; final IconData icon; final Color color; final String route;
+  const _QA(this.label, this.icon, this.color, this.route);
+}
+
+// ── Budget Preview ─────────────────────────────────────────────────────────────
+
+class _BudgetPreview extends StatelessWidget {
+  const _BudgetPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<BudgetProvider>(builder: (_, p, __) {
+      if (p.isLoading) return const _Loader();
+      if (p.budgets.isEmpty) return _EmptyHint('No budgets yet', 'Create Budget',
+          () => Navigator.pushNamed(context, AppRouter.addBudget));
+      return Column(children: p.budgets.take(3).map((b) {
+        final pct = (b.spentAmount / b.limitAmount).clamp(0.0, 1.0);
+        final color = b.isOverBudget ? AppTheme.errorColor
+            : pct >= 0.8 ? AppTheme.warningColor : AppTheme.secondaryColor;
+        return _DarkCard(
+          margin: const EdgeInsets.only(bottom: 10),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(b.categoryName, style: GoogleFonts.inter(
+                color: AppTheme.darkTextPri, fontSize: 15, fontWeight: FontWeight.w600,
+              )),
+              Text('${(pct * 100).toStringAsFixed(0)}%', style: GoogleFonts.inter(
+                color: color, fontSize: 13, fontWeight: FontWeight.w700,
+              )),
+            ]),
+            const SizedBox(height: 4),
+            Text('EGP ${b.spentAmount.toStringAsFixed(0)} of ${b.limitAmount.toStringAsFixed(0)}',
+              style: GoogleFonts.inter(color: AppTheme.darkTextSec, fontSize: 12)),
+            const SizedBox(height: 12),
+            ClipRRect(borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: pct,
+                backgroundColor: color.withValues(alpha: 0.12),
+                valueColor: AlwaysStoppedAnimation(color),
+                minHeight: 6,
+              ),
+            ),
+          ]),
+        );
+      }).toList());
+    });
+  }
+}
+
+// ── Goals Preview ──────────────────────────────────────────────────────────────
+
+class _GoalsPreview extends StatelessWidget {
+  const _GoalsPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GoalProvider>(builder: (_, p, __) {
+      if (p.isLoading) return const _Loader();
+      if (p.goals.isEmpty) return _EmptyHint('No goals yet', 'Create Goal',
+          () => Navigator.pushNamed(context, AppRouter.addGoal));
+      return Column(children: p.goals.take(2).map((g) {
+        final pct = (g.currentAmount / g.targetAmount).clamp(0.0, 1.0);
+        return _DarkCard(
+          margin: const EdgeInsets.only(bottom: 10),
+          child: Row(children: [
+            SizedBox(width: 54, height: 54, child: Stack(alignment: Alignment.center, children: [
+              CircularProgressIndicator(
+                value: pct, strokeWidth: 4.5,
+                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.12),
+                valueColor: const AlwaysStoppedAnimation(AppTheme.primaryColor),
+              ),
+              Text('${(pct * 100).toInt()}%', style: GoogleFonts.inter(
+                color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.w700,
+              )),
+            ])),
+            const SizedBox(width: 14),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(g.name, style: GoogleFonts.inter(
+                color: AppTheme.darkTextPri, fontSize: 15, fontWeight: FontWeight.w600,
+              ), overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 3),
+              Text('EGP ${g.currentAmount.toStringAsFixed(0)} of ${g.targetAmount.toStringAsFixed(0)}',
+                style: GoogleFonts.inter(color: AppTheme.darkTextSec, fontSize: 12)),
+            ])),
+          ]),
+        );
+      }).toList());
+    });
+  }
+}
+
+// ── Shared helpers ─────────────────────────────────────────────────────────────
+
+class _DarkCard extends StatelessWidget {
+  final Widget child; final EdgeInsets? margin;
+  const _DarkCard({required this.child, this.margin});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: margin,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppTheme.darkCard,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: AppTheme.darkBorder),
+    ),
+    child: child,
+  );
+}
+
+class _IconBtn extends StatelessWidget {
+  final IconData icon; final VoidCallback onTap;
+  const _IconBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 38, height: 38,
+      decoration: BoxDecoration(
+        color: AppTheme.darkElevated,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.darkBorder),
+      ),
+      child: Icon(icon, color: AppTheme.darkTextPri, size: 18),
+    ),
+  );
+}
+
+class _Loader extends StatelessWidget {
+  const _Loader();
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 20),
+    child: Center(child: CircularProgressIndicator()),
+  );
+}
+
+Widget _EmptyHint(String msg, String action, VoidCallback onTap) =>
+  Builder(builder: (context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppTheme.darkCard,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: AppTheme.darkBorder),
+    ),
+    child: Row(children: [
+      Text(msg, style: GoogleFonts.inter(color: AppTheme.darkTextSec, fontSize: 14)),
+      const Spacer(),
+      GestureDetector(
+        onTap: onTap,
+        child: Text('+ $action', style: GoogleFonts.inter(
+          color: AppTheme.primaryColor, fontSize: 13, fontWeight: FontWeight.w600,
+        )),
+      ),
+    ]),
+  ));

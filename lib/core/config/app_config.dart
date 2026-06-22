@@ -18,7 +18,7 @@ class AppConfig {
   static const String voiceExpenseEndpoint = '/expenses/voice';
   static const String voicePreviewEndpoint = '/expenses/voice/preview';
   static const String voiceConfirmEndpoint = '/expenses/voice/confirm';
-  static const String dashboardEndpoint = '/reports/dashboard';
+  static const String dashboardEndpoint = '/dashboard/summary';
   static const String insightsEndpoint = '/reports/insights';
   static const String categoriesEndpoint = '/categories';
   

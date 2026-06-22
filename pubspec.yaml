@@ -24,7 +24,7 @@ dependencies:
   fl_chart: ^0.66.0
   
   # Voice Recording
-  record: ^5.0.4
+  record: ^7.0.0
   permission_handler: ^11.1.0
   
   # UI Components
@@ -37,6 +37,7 @@ dependencies:
   # Utilities
   flutter_svg: ^2.0.9
   cached_network_image: ^3.3.1
+  google_fonts: ^6.1.0
 
 dev_dependencies:
   flutter_test:

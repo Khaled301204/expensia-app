@@ -48,21 +48,8 @@ class NotificationProvider with ChangeNotifier {
   }
 
   Future<void> markAllAsRead() async {
-    try {
-      await _repository.markAllAsRead();
-      _notifications = _notifications
-          .map((n) => AppNotification(
-                id: n.id,
-                userId: n.userId,
-                type: n.type,
-                title: n.title,
-                message: n.message,
-                isRead: true,
-                createdAt: n.createdAt,
-              ))
-          .toList();
-      notifyListeners();
-    } catch (_) {}
+    final unread = _notifications.where((n) => !n.isRead).toList();
+    await Future.wait(unread.map((n) => markAsRead(n.id)));
   }
 
   void clearError() {

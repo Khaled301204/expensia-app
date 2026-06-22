@@ -3,7 +3,7 @@ import '../../data/services/storage_service.dart';
 
 class ThemeProvider with ChangeNotifier {
   final StorageService _storageService = StorageService();
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.dark;
 
   ThemeMode get themeMode => _themeMode;
   bool get isDarkMode => _themeMode == ThemeMode.dark;

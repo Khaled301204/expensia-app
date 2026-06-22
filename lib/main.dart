@@ -9,6 +9,7 @@ import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'presentation/providers/insights_provider.dart';
 import 'presentation/providers/dashboard_provider.dart';
+import 'presentation/providers/income_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => InsightsProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => IncomeProvider()),
       ],
       child: const ExpensiaApp(),
     ),

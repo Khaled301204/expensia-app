@@ -130,7 +130,7 @@ class ApiService {
   }) async {
     try {
       final formData = FormData.fromMap({
-        'audioFile': await MultipartFile.fromFile(filePath),
+        'audio': await MultipartFile.fromFile(filePath),
         ...?additionalData,
       });
 
