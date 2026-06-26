@@ -50,6 +50,7 @@ class AuthProvider with ChangeNotifier {
         riskPreference: riskPreference,
       );
       _user = result['user'];
+      _user = await _authRepository.fetchCurrentUser();
       _isLoading = false;
       notifyListeners();
       return true;
@@ -76,6 +77,7 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
       _user = result['user'];
+      _user = await _authRepository.fetchCurrentUser();
       _isLoading = false;
       notifyListeners();
       return true;
@@ -108,7 +110,6 @@ class AuthProvider with ChangeNotifier {
 
     try {
       _user = await _authRepository.updateProfile(
-        userId: _user!.id,
         name: name,
         phone: phone,
         riskPreference: riskPreference,

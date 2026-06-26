@@ -82,19 +82,29 @@ class AuthRepository {
     return await _storageService.isLoggedIn();
   }
 
+  // Fetch current user from server (gets riskPreference + createdAt)
+  Future<User> fetchCurrentUser() async {
+    final response = await _apiService.get(AppConfig.userMeEndpoint);
+    if (response.data['success'] == true) {
+      final user = User.fromJson(response.data['data']);
+      await _storageService.saveUser(user);
+      return user;
+    }
+    throw Exception(response.data['message'] ?? 'Failed to fetch user');
+  }
+
   // Update profile
   Future<User> updateProfile({
-    required int userId,
     String? name,
     String? phone,
     String? riskPreference,
   }) async {
     final response = await _apiService.put(
-      '${AppConfig.authEndpoint}/profile/$userId',
+      AppConfig.userMeEndpoint,
       data: {
-        'name': name,
-        'phone': phone,
-        'riskPreference': riskPreference,
+        if (name != null) 'name': name,
+        if (phone != null) 'phone': phone,
+        if (riskPreference != null) 'riskPreference': riskPreference,
       },
     );
 

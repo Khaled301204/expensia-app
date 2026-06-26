@@ -25,6 +25,7 @@ class AppConfig {
   static const String walletEndpoint          = '/wallet';
   static const String parseTextEndpoint       = '/expenses/parse-text';
   static const String categoriesEndpoint      = '/categories';
+  static const String userMeEndpoint          = '/user/me';
   static const String exportCsvEndpoint       = '/reports/export/csv';
   static const String exportPdfEndpoint       = '/reports/export/pdf';
   

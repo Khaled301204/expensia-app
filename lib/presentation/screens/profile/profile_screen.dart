@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/config/theme.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../providers/auth_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -25,7 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user != null) {
       _nameCtrl.text  = user.name;
       _phoneCtrl.text = user.phone ?? '';
-      _selectedRisk   = user.riskPreference;
+      _selectedRisk   = user.riskPreference?.toUpperCase();
     }
   }
 
@@ -155,8 +154,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     prefixIcon: Icon(Icons.tune_outlined, size: 18)),
                 hint: Text('Select risk level',
                     style: GoogleFonts.inter(color: AppTheme.darkTextMuted, fontSize: 14)),
-                items: AppConstants.riskPreferences.map((r) =>
-                    DropdownMenuItem(value: r, child: Text(r))).toList(),
+                items: const [
+                  DropdownMenuItem(value: 'LOW',    child: Text('Low')),
+                  DropdownMenuItem(value: 'MEDIUM', child: Text('Medium')),
+                  DropdownMenuItem(value: 'HIGH',   child: Text('High')),
+                ],
                 onChanged: (v) => setState(() => _selectedRisk = v),
               ),
               const SizedBox(height: 36),
