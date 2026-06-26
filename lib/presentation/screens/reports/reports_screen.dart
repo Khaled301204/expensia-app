@@ -4,6 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/config/theme.dart';
+import '../../../core/config/app_config.dart';
+import '../../../core/utils/file_download.dart';
+import '../../../data/services/api_service.dart';
 import '../../../routes/app_router.dart';
 import '../../providers/expense_provider.dart';
 import '../../providers/reports_provider.dart';
@@ -21,6 +24,7 @@ class _ReportsScreenState extends State<ReportsScreen>
   late TabController _tabController;
   int _touchedPieIndex = -1;
   DateTime _selectedMonth = DateTime.now();
+  bool _exporting = false;
 
   @override
   void initState() {
@@ -36,6 +40,28 @@ class _ReportsScreenState extends State<ReportsScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _export(String endpoint, String filename, String mimeType) async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      final bytes = await ApiService().fetchBytes(endpoint);
+      final savedPath = await downloadFile(bytes, filename, mimeType);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(savedPath != null ? 'Saved to $savedPath' : '$filename downloaded'),
+        backgroundColor: AppTheme.successColor,
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Export failed: $e'),
+        backgroundColor: AppTheme.errorColor,
+      ));
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   @override
@@ -54,6 +80,39 @@ class _ReportsScreenState extends State<ReportsScreen>
             tooltip: 'AI Insights',
             onPressed: () => Navigator.pushNamed(context, AppRouter.insights),
           ),
+          if (_exporting)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: SizedBox(width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor)),
+            )
+          else
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.download_outlined),
+              tooltip: 'Export',
+              color: AppTheme.darkElevated,
+              onSelected: (v) {
+                if (v == 'csv') {
+                  _export(AppConfig.exportCsvEndpoint, 'expense-report.csv', 'text/csv');
+                } else {
+                  _export(AppConfig.exportPdfEndpoint, 'expense-report.pdf', 'application/pdf');
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(value: 'csv',
+                  child: Row(children: [
+                    const Icon(Icons.table_chart_outlined, size: 18, color: AppTheme.secondaryColor),
+                    const SizedBox(width: 10),
+                    Text('Export CSV', style: GoogleFonts.inter(color: AppTheme.darkTextPri)),
+                  ])),
+                PopupMenuItem(value: 'pdf',
+                  child: Row(children: [
+                    const Icon(Icons.picture_as_pdf_outlined, size: 18, color: AppTheme.errorColor),
+                    const SizedBox(width: 10),
+                    Text('Export PDF', style: GoogleFonts.inter(color: AppTheme.darkTextPri)),
+                  ])),
+              ],
+            ),
         ],
         bottom: TabBar(
           controller: _tabController,

@@ -9,6 +9,7 @@ import '../../../data/repositories/category_repository.dart';
 import '../../../data/services/voice_service.dart';
 import '../../providers/expense_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/budget_provider.dart';
 
 enum _VoiceStep { idle, recording, processing, preview, confirming, done }
 
@@ -165,6 +166,7 @@ class _VoiceExpenseScreenState extends State<VoiceExpenseScreen>
     if (!mounted) return;
     if (success) {
       context.read<DashboardProvider>().loadDashboard();
+      context.read<BudgetProvider>().loadBudgets();
       setState(() => _step = _VoiceStep.done);
     } else {
       setState(() {
@@ -242,70 +244,75 @@ class _IdleView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              ),
-              child: const Icon(Icons.mic_outlined,
-                  size: 56, color: AppTheme.primaryColor),
-            ),
-            const SizedBox(height: 32),
-            Text('Voice Expense',
-                style: Theme.of(context).textTheme.displaySmall),
-            const SizedBox(height: 12),
-            Text(
-              'Tap the microphone and describe your expense.\nOur AI will extract the details automatically.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            if (error != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.errorColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+    return CustomScrollView(
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  ),
+                  child: const Icon(Icons.mic_outlined,
+                      size: 56, color: AppTheme.primaryColor),
                 ),
-                child: Text(error!,
-                    style: const TextStyle(color: AppTheme.errorColor),
-                    textAlign: TextAlign.center),
-              ),
-            ],
-            const SizedBox(height: 40),
-            GestureDetector(
-              onTap: onRecord,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.primaryColor,
-                  boxShadow: [
-                    BoxShadow(
-                        color: AppTheme.primaryColor,
-                        blurRadius: 20,
-                        spreadRadius: 4,
-                        offset: Offset(0, 4)),
-                  ],
+                const SizedBox(height: 32),
+                Text('Voice Expense',
+                    style: Theme.of(context).textTheme.displaySmall),
+                const SizedBox(height: 12),
+                Text(
+                  'Tap the microphone and describe your expense.\nOur AI will extract the details automatically.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                child: const Icon(Icons.mic, color: Colors.white, size: 36),
-              ),
+                if (error != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.errorColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(error!,
+                        style: const TextStyle(color: AppTheme.errorColor),
+                        textAlign: TextAlign.center),
+                  ),
+                ],
+                const SizedBox(height: 40),
+                GestureDetector(
+                  onTap: onRecord,
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.primaryColor,
+                      boxShadow: [
+                        BoxShadow(
+                            color: AppTheme.primaryColor,
+                            blurRadius: 20,
+                            spreadRadius: 4,
+                            offset: Offset(0, 4)),
+                      ],
+                    ),
+                    child: const Icon(Icons.mic, color: Colors.white, size: 36),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text('Tap to record',
+                    style: Theme.of(context).textTheme.bodyMedium),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text('Tap to record',
-                style: Theme.of(context).textTheme.bodyMedium),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

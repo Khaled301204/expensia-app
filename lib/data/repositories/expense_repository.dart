@@ -2,9 +2,23 @@ import '../models/expense.dart';
 import '../models/voice_preview.dart';
 import '../services/api_service.dart';
 import '../../core/config/app_config.dart';
+import 'category_repository.dart';
 
 class ExpenseRepository {
   final ApiService _apiService = ApiService();
+  final CategoryRepository _categoryRepository = CategoryRepository();
+
+  Future<Map<int, String>> _categoryMap() async {
+    final categories = await _categoryRepository.getCategories();
+    return {for (final c in categories) c.id: c.name};
+  }
+
+  Map<String, dynamic> _injectCategory(
+      Map<String, dynamic> json, Map<int, String> map) {
+    final catId = json['categoryId'] as int?;
+    final name = map[catId] ?? 'Other';
+    return {...json, 'category': name, 'categoryName': name};
+  }
 
   // Get all expenses
   Future<List<Expense>> getExpenses({
@@ -16,18 +30,23 @@ class ExpenseRepository {
     final queryParams = {
       'page': page,
       'size': size,
+      'sort': 'id,desc',
       if (startDate != null) 'startDate': startDate.toIso8601String(),
       if (endDate != null) 'endDate': endDate.toIso8601String(),
     };
 
-    final response = await _apiService.get(
+    final responseFuture = _apiService.get(
       AppConfig.expensesEndpoint,
       queryParameters: queryParams,
     );
+    final catMap = await _categoryMap();
+    final response = await responseFuture;
 
-    if (response.data['success']) {
+    if (response.data['success'] == true) {
       final List expensesJson = response.data['data'];
-      return expensesJson.map((json) => Expense.fromJson(json)).toList();
+      return expensesJson
+          .map((json) => Expense.fromJson(_injectCategory(json, catMap)))
+          .toList();
     }
 
     throw Exception('Failed to load expenses');
@@ -35,38 +54,40 @@ class ExpenseRepository {
 
   // Get expense by ID
   Future<Expense> getExpenseById(int id) async {
-    final response = await _apiService.get('${AppConfig.expensesEndpoint}/$id');
+    final responseFuture = _apiService.get('${AppConfig.expensesEndpoint}/$id');
+    final catMap = await _categoryMap();
+    final response = await responseFuture;
 
-    if (response.data['success']) {
-      return Expense.fromJson(response.data['data']);
+    if (response.data['success'] == true) {
+      return Expense.fromJson(_injectCategory(response.data['data'], catMap));
     }
 
     throw Exception('Failed to load expense');
   }
 
-  // Create expense
+  // Create expense — categoryId is ignored by backend (AI assigns it)
   Future<Expense> createExpense({
     required double amount,
-    required int categoryId,
     required DateTime date,
     String? description,
     String? merchant,
     String? paymentMethod,
   }) async {
+    final catMapFuture = _categoryMap();
     final response = await _apiService.post(
       AppConfig.expensesEndpoint,
       data: {
         'amount': amount,
-        'categoryId': categoryId,
-        'date': date.toIso8601String(),
+        'date': DateTime(date.year, date.month, date.day).toIso8601String(),
         'description': description,
         'merchant': merchant,
         'paymentMethod': paymentMethod,
       },
     );
 
-    if (response.data['success']) {
-      return Expense.fromJson(response.data['data']);
+    if (response.data['success'] == true) {
+      final catMap = await catMapFuture;
+      return Expense.fromJson(_injectCategory(response.data['data'], catMap));
     }
 
     throw Exception(response.data['message'] ?? 'Failed to create expense');
@@ -77,6 +98,7 @@ class ExpenseRepository {
     final response = await _apiService.uploadFile(
       AppConfig.voicePreviewEndpoint,
       audioFilePath,
+      additionalData: {'language': 'auto'},
     );
     final body = response.data;
     final data = (body is Map && body['success'] == true) ? body['data'] : body;
@@ -85,13 +107,15 @@ class ExpenseRepository {
 
   // Step 2: Confirm and create the expense from corrected preview data
   Future<Expense> confirmVoiceExpense(VoicePreview preview) async {
+    final catMapFuture = _categoryMap();
     final response = await _apiService.post(
       AppConfig.voiceConfirmEndpoint,
       data: preview.toConfirmJson(),
     );
     final body = response.data;
     if (body is Map && body['success'] == true) {
-      return Expense.fromJson(body['data']);
+      final catMap = await catMapFuture;
+      return Expense.fromJson(_injectCategory(body['data'], catMap));
     }
     throw Exception(body['message'] ?? 'Failed to confirm voice expense');
   }
@@ -106,6 +130,7 @@ class ExpenseRepository {
     String? merchant,
     String? paymentMethod,
   }) async {
+    final catMapFuture = _categoryMap();
     final response = await _apiService.put(
       '${AppConfig.expensesEndpoint}/$id',
       data: {
@@ -118,8 +143,9 @@ class ExpenseRepository {
       },
     );
 
-    if (response.data['success']) {
-      return Expense.fromJson(response.data['data']);
+    if (response.data['success'] == true) {
+      final catMap = await catMapFuture;
+      return Expense.fromJson(_injectCategory(response.data['data'], catMap));
     }
 
     throw Exception(response.data['message'] ?? 'Failed to update expense');
@@ -129,7 +155,7 @@ class ExpenseRepository {
   Future<void> deleteExpense(int id) async {
     final response = await _apiService.delete('${AppConfig.expensesEndpoint}/$id');
 
-    if (!response.data['success']) {
+    if (response.data['success'] != true) {
       throw Exception(response.data['message'] ?? 'Failed to delete expense');
     }
   }

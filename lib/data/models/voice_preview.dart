@@ -53,8 +53,9 @@ class VoicePreview {
       'amount': amount,
       if (merchant != null) 'merchant': merchant,
       if (description != null) 'description': description,
-      'date': date.toIso8601String(),
+      'date': DateTime(date.year, date.month, date.day).toIso8601String(),
       if (categoryId != null) 'categoryId': categoryId,
+      if (categoryName != null) 'categoryName': categoryName,
     };
   }
 }

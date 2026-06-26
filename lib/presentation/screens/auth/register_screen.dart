@@ -21,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passCtrl   = TextEditingController();
   final _confCtrl   = TextEditingController();
   bool _obscure = true, _obscureC = true;
+  String _riskPreference = 'MEDIUM';
 
   @override
   void dispose() {
@@ -36,6 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       password: _passCtrl.text,
       name: _nameCtrl.text.trim(),
       phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+      riskPreference: _riskPreference,
     );
     if (!mounted) return;
     if (ok) { Navigator.pushReplacementNamed(context, AppRouter.home); }
@@ -170,6 +172,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+
+                // Risk preference picker
+                AuthFieldLabel('Investment risk preference'),
+                const SizedBox(height: 10),
+                Row(children: [
+                  for (final (value, label, color) in [
+                    ('LOW',    'Low',    const Color(0xFF10B981)),
+                    ('MEDIUM', 'Medium', const Color(0xFFF59E0B)),
+                    ('HIGH',   'High',   AppTheme.errorColor),
+                  ]) ...[
+                    Expanded(child: GestureDetector(
+                      onTap: () => setState(() => _riskPreference = value),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _riskPreference == value
+                              ? color.withValues(alpha: 0.15)
+                              : AppTheme.darkElevated,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _riskPreference == value
+                                ? color
+                                : AppTheme.darkBorder,
+                            width: _riskPreference == value ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Column(children: [
+                          Icon(Icons.trending_up, size: 16,
+                              color: _riskPreference == value ? color : AppTheme.darkTextMuted),
+                          const SizedBox(height: 4),
+                          Text(label, style: GoogleFonts.inter(
+                            fontSize: 12, fontWeight: FontWeight.w600,
+                            color: _riskPreference == value ? color : AppTheme.darkTextSec,
+                          )),
+                        ]),
+                      ),
+                    )),
+                    if (value != 'HIGH') const SizedBox(width: 8),
+                  ],
+                ]),
                 const SizedBox(height: 32),
 
                 Consumer<AuthProvider>(builder: (_, auth, __) =>

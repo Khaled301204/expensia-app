@@ -102,7 +102,7 @@ class _BudgetCard extends StatelessWidget {
     final pct = (budget.spentAmount / budget.limitAmount).clamp(0.0, 1.0);
     final color = budget.isOverBudget
         ? AppTheme.errorColor
-        : pct >= 0.8
+        : pct >= budget.alertThreshold
             ? AppTheme.warningColor
             : AppTheme.secondaryColor;
 

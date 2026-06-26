@@ -14,17 +14,20 @@ class FinancialInsights {
   factory FinancialInsights.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? json;
     return FinancialInsights(
-      forecast: data['forecast'] != null
-          ? ForecastData.fromJson(data['forecast'])
+      forecast: data['forecast'] is Map
+          ? ForecastData.fromJson(data['forecast'] as Map<String, dynamic>)
           : null,
-      patterns: (data['patterns'] as List?)
-              ?.map((p) => SpendingPattern.fromJson(p))
-              .toList() ??
-          [],
-      recommendations: (data['recommendations'] as List?)
-              ?.map((r) => r.toString())
-              .toList() ??
-          [],
+      patterns: data['patterns'] is List
+          ? (data['patterns'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map(SpendingPattern.fromJson)
+              .toList()
+          : [],
+      recommendations: data['recommendations'] is List
+          ? (data['recommendations'] as List)
+              .map((r) => r.toString())
+              .toList()
+          : [],
       overallFinancialScore:
           (data['overallFinancialScore'] as num?)?.toDouble() ?? 0.0,
     );

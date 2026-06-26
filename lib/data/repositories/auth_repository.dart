@@ -13,6 +13,7 @@ class AuthRepository {
     required String password,
     required String name,
     String? phone,
+    String? riskPreference,
   }) async {
     final response = await _apiService.post(
       '${AppConfig.authEndpoint}/register',
@@ -20,11 +21,12 @@ class AuthRepository {
         'email': email,
         'password': password,
         'name': name,
-        'phone': phone,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (riskPreference != null) 'riskPreference': riskPreference,
       },
     );
 
-    if (response.data['success']) {
+    if (response.data['success'] == true) {
       final data = response.data['data'];
       final token = data['token'];
       final user = User.fromJson(data);
@@ -51,7 +53,7 @@ class AuthRepository {
       },
     );
 
-    if (response.data['success']) {
+    if (response.data['success'] == true) {
       final data = response.data['data'];
       final token = data['token'];
       final user = User.fromJson(data);
@@ -96,7 +98,7 @@ class AuthRepository {
       },
     );
 
-    if (response.data['success']) {
+    if (response.data['success'] == true) {
       final user = User.fromJson(response.data['data']);
       await _storageService.saveUser(user);
       return user;

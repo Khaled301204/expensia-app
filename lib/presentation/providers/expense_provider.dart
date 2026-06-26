@@ -29,9 +29,11 @@ class ExpenseProvider with ChangeNotifier {
 
     try {
       _expenses = await _expenseRepository.getExpenses(
+        size: 100,
         startDate: startDate,
         endDate: endDate,
       );
+      _expenses.sort((a, b) => b.id.compareTo(a.id));
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -41,10 +43,9 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
-  // Create expense
+  // Create expense — category is AI-assigned by backend
   Future<bool> createExpense({
     required double amount,
-    required int categoryId,
     required DateTime date,
     String? description,
     String? merchant,
@@ -57,7 +58,6 @@ class ExpenseProvider with ChangeNotifier {
     try {
       final expense = await _expenseRepository.createExpense(
         amount: amount,
-        categoryId: categoryId,
         date: date,
         description: description,
         merchant: merchant,

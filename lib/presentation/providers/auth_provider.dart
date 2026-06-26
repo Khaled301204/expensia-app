@@ -35,6 +35,7 @@ class AuthProvider with ChangeNotifier {
     required String password,
     required String name,
     String? phone,
+    String? riskPreference,
   }) async {
     _isLoading = true;
     _error = null;
@@ -46,6 +47,7 @@ class AuthProvider with ChangeNotifier {
         password: password,
         name: name,
         phone: phone,
+        riskPreference: riskPreference,
       );
       _user = result['user'];
       _isLoading = false;

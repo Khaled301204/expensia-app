@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../core/config/app_config.dart';
 import '../../core/constants/api_constants.dart';
 import 'storage_service.dart';
@@ -122,6 +123,19 @@ class ApiService {
     }
   }
 
+  // Fetch raw bytes (for CSV/PDF export)
+  Future<List<int>> fetchBytes(String endpoint) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        endpoint,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response.data ?? [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Upload File (for voice expense)
   Future<Response> uploadFile(
     String endpoint,
@@ -129,10 +143,30 @@ class ApiService {
     Map<String, dynamic>? additionalData,
   }) async {
     try {
-      final formData = FormData.fromMap({
-        'audio': await MultipartFile.fromFile(filePath),
-        ...?additionalData,
-      });
+      FormData formData;
+      if (kIsWeb) {
+        // On web, record package returns a blob: URL.
+        // _dio has a baseUrl so it can't fetch blob: URLs directly — use a
+        // bare Dio instance instead (same-origin XHR can access blob: URLs).
+        final blobDio = Dio();
+        final blobRes = await blobDio.get<List<int>>(
+          filePath,
+          options: Options(responseType: ResponseType.bytes),
+        );
+        formData = FormData.fromMap({
+          'audio': MultipartFile.fromBytes(
+            blobRes.data ?? [],
+            filename: 'recording.webm',
+            contentType: DioMediaType('audio', 'webm'),
+          ),
+          ...?additionalData,
+        });
+      } else {
+        formData = FormData.fromMap({
+          'audio': await MultipartFile.fromFile(filePath),
+          ...?additionalData,
+        });
+      }
 
       return await _dio.post(
         endpoint,

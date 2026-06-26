@@ -7,7 +7,7 @@ class GoalRepository {
 
   Future<List<Goal>> getGoals() async {
     final response = await _apiService.get(AppConfig.goalsEndpoint);
-    if (response.data['success']) {
+    if (response.data['success'] == true) {
       final List goalsJson = response.data['data'];
       return goalsJson.map((json) => Goal.fromJson(json)).toList();
     }
@@ -27,7 +27,7 @@ class GoalRepository {
         'deadline': deadline.toIso8601String().split('T')[0],
       },
     );
-    if (response.data['success']) {
+    if (response.data['success'] == true) {
       return Goal.fromJson(response.data['data']);
     }
     throw Exception('Failed to create goal');
@@ -38,7 +38,7 @@ class GoalRepository {
     '${AppConfig.goalsEndpoint}/$goalId/savings',
     data: {'amount': amount},
 );
-    if (response.data['success']) {
+    if (response.data['success'] == true) {
       return Goal.fromJson(response.data['data']);
     }
     throw Exception('Failed to add savings');

@@ -123,7 +123,9 @@ class _BalanceHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<DashboardProvider>(builder: (_, p, __) =>
-      Container(
+      GestureDetector(
+        onTap: () => Navigator.pushNamed(context, AppRouter.wallet),
+        child: Container(
         margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -175,6 +177,7 @@ class _BalanceHeroCard extends StatelessWidget {
             )),
           ]),
         ]),
+      ),
       ),
     );
   }
@@ -238,6 +241,7 @@ class _QuickActions extends StatelessWidget {
     _QA('Goals',        Icons.flag_outlined,                   AppTheme.accentPurple,   AppRouter.goals),
     _QA('Reports',      Icons.bar_chart_outlined,              Color(0xFF38BDF8),       AppRouter.reports),
     _QA('AI Insights',  Icons.psychology_outlined,             AppTheme.accentGold,     AppRouter.insights),
+    _QA('Wallet',       Icons.account_balance_wallet_outlined, Color(0xFF06B6D4),        AppRouter.wallet),
   ];
 
   @override
@@ -295,7 +299,7 @@ class _BudgetPreview extends StatelessWidget {
       return Column(children: p.budgets.take(3).map((b) {
         final pct = (b.spentAmount / b.limitAmount).clamp(0.0, 1.0);
         final color = b.isOverBudget ? AppTheme.errorColor
-            : pct >= 0.8 ? AppTheme.warningColor : AppTheme.secondaryColor;
+            : pct >= b.alertThreshold ? AppTheme.warningColor : AppTheme.secondaryColor;
         return _DarkCard(
           margin: const EdgeInsets.only(bottom: 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

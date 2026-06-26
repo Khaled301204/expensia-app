@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,14 +7,16 @@ class VoiceService {
   final AudioRecorder _recorder = AudioRecorder();
   String? _recordingPath;
 
-  // Request microphone permission
+  // Request microphone permission (native only)
   Future<bool> requestPermission() async {
+    if (kIsWeb) return true;
     final status = await Permission.microphone.request();
     return status.isGranted;
   }
 
-  // Check if permission is granted
+  // Check if permission is granted (native only)
   Future<bool> hasPermission() async {
+    if (kIsWeb) return true;
     final status = await Permission.microphone.status;
     return status.isGranted;
   }
@@ -22,23 +24,34 @@ class VoiceService {
   // Start recording
   Future<bool> startRecording() async {
     try {
-      if (!await hasPermission()) {
-        final granted = await requestPermission();
-        if (!granted) return false;
+      // On web the browser handles mic permission natively when recording starts.
+      // permission_handler is not supported on web and always returns denied.
+      if (!kIsWeb) {
+        if (!await hasPermission()) {
+          final granted = await requestPermission();
+          if (!granted) return false;
+        }
       }
 
-      final directory = await getApplicationDocumentsDirectory();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      _recordingPath = '${directory.path}/expense_$timestamp.m4a';
-
-      await _recorder.start(
-        const RecordConfig(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 128000,
-          sampleRate: 44100,
-        ),
-        path: _recordingPath!,
-      );
+      if (kIsWeb) {
+        // Web: record to memory (no file path needed)
+        await _recorder.start(
+          const RecordConfig(encoder: AudioEncoder.opus),
+          path: '',
+        );
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        _recordingPath = '${directory.path}/expense_$timestamp.m4a';
+        await _recorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            bitRate: 128000,
+            sampleRate: 44100,
+          ),
+          path: _recordingPath!,
+        );
+      }
 
       return true;
     } catch (_) {
@@ -60,14 +73,8 @@ class VoiceService {
   Future<void> cancelRecording() async {
     try {
       await _recorder.stop();
-      if (_recordingPath != null) {
-        final file = File(_recordingPath!);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      }
-    } catch (_) {
-    }
+      // Temp file is intentionally left; OS will clean up app documents dir.
+    } catch (_) {}
   }
 
   // Check if currently recording

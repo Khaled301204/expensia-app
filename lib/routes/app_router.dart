@@ -14,6 +14,7 @@ import '../presentation/screens/goals/add_goal_screen.dart';
 import '../presentation/screens/reports/reports_screen.dart';
 import '../presentation/screens/notifications/notifications_screen.dart';
 import '../presentation/screens/insights/insights_screen.dart';
+import '../presentation/screens/wallet/wallet_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -32,6 +33,7 @@ class AppRouter {
   static const String reports = '/reports';
   static const String notifications = '/notifications';
   static const String insights = '/insights';
+  static const String wallet = '/wallet';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -81,6 +83,9 @@ class AppRouter {
 
       case insights:
         return MaterialPageRoute(builder: (_) => const InsightsScreen());
+
+      case wallet:
+        return MaterialPageRoute(builder: (_) => const WalletScreen());
 
       default:
         return MaterialPageRoute(

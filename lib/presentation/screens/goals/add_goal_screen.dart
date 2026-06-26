@@ -17,6 +17,12 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   DateTime _deadline = DateTime.now().add(const Duration(days: 90));
 
   @override
+  void initState() {
+    super.initState();
+    _targetController.addListener(() => setState(() {}));
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _targetController.dispose();
