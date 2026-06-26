@@ -112,6 +112,42 @@ class ExpenseProvider with ChangeNotifier {
     }
   }
 
+  // Update expense
+  Future<bool> updateExpense({
+    required int id,
+    double? amount,
+    int? categoryId,
+    DateTime? date,
+    String? description,
+    String? merchant,
+    String? paymentMethod,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final updated = await _expenseRepository.updateExpense(
+        id: id,
+        amount: amount,
+        categoryId: categoryId,
+        date: date,
+        description: description,
+        merchant: merchant,
+        paymentMethod: paymentMethod,
+      );
+      final idx = _expenses.indexWhere((e) => e.id == id);
+      if (idx != -1) _expenses[idx] = updated;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Delete expense
   Future<bool> deleteExpense(int id) async {
     try {

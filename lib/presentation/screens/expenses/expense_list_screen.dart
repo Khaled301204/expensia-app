@@ -5,6 +5,7 @@ import '../../../routes/app_router.dart';
 import '../../../core/config/theme.dart';
 import '../../providers/expense_provider.dart';
 import '../../../data/models/expense.dart';
+import 'edit_expense_screen.dart';
 
 class ExpenseListScreen extends StatefulWidget {
   const ExpenseListScreen({super.key});
@@ -81,6 +82,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                               const SizedBox(height: 8),
                           itemBuilder: (context, i) => _ExpenseTile(
                             expense: expenses[i],
+                            onEdit: () => _goEdit(expenses[i]),
                             onDelete: () =>
                                 _confirmDelete(context, provider, expenses[i]),
                           ),
@@ -141,6 +143,17 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
         },
       ),
     );
+  }
+
+  void _goEdit(Expense expense) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditExpenseScreen(expense: expense)),
+    ).then((updated) {
+      if (updated == true && mounted) {
+        context.read<ExpenseProvider>().loadExpenses();
+      }
+    });
   }
 
   Future<void> _confirmDelete(
@@ -236,9 +249,10 @@ class _TotalBanner extends StatelessWidget {
 
 class _ExpenseTile extends StatelessWidget {
   final Expense expense;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _ExpenseTile({required this.expense, required this.onDelete});
+  const _ExpenseTile({required this.expense, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -296,6 +310,12 @@ class _ExpenseTile extends StatelessWidget {
                 if (expense.createdByVoice)
                   const Icon(Icons.mic, size: 12, color: AppTheme.primaryColor),
               ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, color: Colors.grey),
+              onPressed: onEdit,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.grey),

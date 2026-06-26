@@ -105,6 +105,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(width: 8),
           _IconBtn(
+            icon: Icons.person_outline,
+            onTap: () => Navigator.pushNamed(context, AppRouter.profile),
+          ),
+          const SizedBox(width: 8),
+          _IconBtn(
             icon: Icons.logout_outlined,
             onTap: () async {
               await context.read<AuthProvider>().logout();
@@ -235,8 +240,9 @@ class _QuickActions extends StatelessWidget {
 
   static const _items = [
     _QA('Add Expense',  Icons.remove_circle_outline,           AppTheme.errorColor,     AppRouter.addExpense),
+    _QA('Expenses',     Icons.receipt_long_outlined,           AppTheme.primaryColor,   AppRouter.expenseList),
     _QA('Add Income',   Icons.add_circle_outline,              AppTheme.secondaryColor, AppRouter.addIncome),
-    _QA('Voice',        Icons.mic_outlined,                    AppTheme.primaryColor,   AppRouter.voiceExpense),
+    _QA('Voice',        Icons.mic_outlined,                    Color(0xFF8B5CF6),        AppRouter.voiceExpense),
     _QA('Budgets',      Icons.account_balance_wallet_outlined, AppTheme.warningColor,   AppRouter.budgetList),
     _QA('Goals',        Icons.flag_outlined,                   AppTheme.accentPurple,   AppRouter.goals),
     _QA('Reports',      Icons.bar_chart_outlined,              Color(0xFF38BDF8),       AppRouter.reports),

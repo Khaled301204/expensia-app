@@ -76,6 +76,7 @@ class _VoiceExpenseScreenState extends State<VoiceExpenseScreen>
 
   Future<void> _startRecording() async {
     final started = await _voiceService.startRecording();
+    if (!mounted) return;
     if (!started) {
       setState(() => _errorMessage =
           'Microphone permission denied. Please enable it in settings.');
@@ -87,7 +88,7 @@ class _VoiceExpenseScreenState extends State<VoiceExpenseScreen>
       _errorMessage = null;
     });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() => _seconds++);
+      if (mounted) setState(() => _seconds++);
     });
   }
 
@@ -96,6 +97,7 @@ class _VoiceExpenseScreenState extends State<VoiceExpenseScreen>
     setState(() => _step = _VoiceStep.processing);
 
     final path = await _voiceService.stopRecording();
+    if (!mounted) return;
     if (path == null) {
       setState(() {
         _step = _VoiceStep.idle;
@@ -107,7 +109,8 @@ class _VoiceExpenseScreenState extends State<VoiceExpenseScreen>
     final provider = context.read<ExpenseProvider>();
     final preview = await provider.previewVoiceExpense(path);
 
-    if (preview == null || !mounted) {
+    if (!mounted) return;
+    if (preview == null) {
       setState(() {
         _step = _VoiceStep.idle;
         _errorMessage = provider.error ?? 'Could not analyse the audio.';

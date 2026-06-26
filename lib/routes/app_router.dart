@@ -4,6 +4,7 @@ import '../presentation/screens/auth/register_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
 import '../presentation/screens/expenses/expense_list_screen.dart';
 import '../presentation/screens/expenses/add_expense_screen.dart';
+import '../presentation/screens/expenses/edit_expense_screen.dart';
 import '../presentation/screens/expenses/voice_expense_screen.dart';
 import '../presentation/screens/incomes/income_list_screen.dart';
 import '../presentation/screens/incomes/add_income_screen.dart';
@@ -15,6 +16,8 @@ import '../presentation/screens/reports/reports_screen.dart';
 import '../presentation/screens/notifications/notifications_screen.dart';
 import '../presentation/screens/insights/insights_screen.dart';
 import '../presentation/screens/wallet/wallet_screen.dart';
+import '../presentation/screens/profile/profile_screen.dart';
+import '../data/models/expense.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -34,6 +37,8 @@ class AppRouter {
   static const String notifications = '/notifications';
   static const String insights = '/insights';
   static const String wallet = '/wallet';
+  static const String profile = '/profile';
+  static const String editExpense = '/expenses/edit';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -86,6 +91,14 @@ class AppRouter {
 
       case wallet:
         return MaterialPageRoute(builder: (_) => const WalletScreen());
+
+      case profile:
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+
+      case editExpense:
+        final expense = settings.arguments as Expense;
+        return MaterialPageRoute(
+            builder: (_) => EditExpenseScreen(expense: expense));
 
       default:
         return MaterialPageRoute(
