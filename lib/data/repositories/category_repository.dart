@@ -23,7 +23,8 @@ class CategoryRepository {
       _cached = raw.map((j) => Category.fromJson(j)).toList();
       return _cached!;
     } catch (_) {
-      return _fallback();
+      _cached ??= _fallback();
+      return _cached!;
     }
   }
 

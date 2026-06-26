@@ -302,7 +302,8 @@ class _BudgetPreview extends StatelessWidget {
       if (p.isLoading) return const _Loader();
       if (p.budgets.isEmpty) return _EmptyHint('No budgets yet', 'Create Budget',
           () => Navigator.pushNamed(context, AppRouter.addBudget));
-      return Column(children: p.budgets.take(3).map((b) {
+      final sorted = [...p.budgets]..sort((a, b) => b.id.compareTo(a.id));
+      return Column(children: sorted.take(3).map((b) {
         final pct = (b.spentAmount / b.limitAmount).clamp(0.0, 1.0);
         final color = b.isOverBudget ? AppTheme.errorColor
             : pct >= b.alertThreshold ? AppTheme.warningColor : AppTheme.secondaryColor;

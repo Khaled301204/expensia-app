@@ -163,8 +163,8 @@ class _NotificationTile extends StatelessWidget {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.primaryColor,
+                          decoration: BoxDecoration(
+                            color: color,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -197,14 +197,14 @@ class _NotificationTile extends StatelessWidget {
   (IconData, Color) _iconForType(String type) {
     switch (type.toUpperCase()) {
       case 'BUDGET_EXCEEDED':
+        return (Icons.money_off_rounded, AppTheme.errorColor);
       case 'BUDGET_WARNING':
         return (Icons.account_balance_wallet, AppTheme.warningColor);
+      case 'GOAL_COMPLETED':
       case 'GOAL_ACHIEVED':
         return (Icons.emoji_events, AppTheme.successColor);
-      case 'SPENDING_ALERT':
-        return (Icons.warning_amber, AppTheme.errorColor);
-      case 'INSIGHT':
-        return (Icons.psychology_outlined, AppTheme.primaryColor);
+      case 'GENERAL':
+        return (Icons.info_outline, AppTheme.primaryColor);
       default:
         return (Icons.notifications_outlined, AppTheme.primaryColor);
     }

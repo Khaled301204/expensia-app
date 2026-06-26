@@ -54,19 +54,22 @@ class BudgetRepository {
   }
 
   Future<Budget> updateBudget({
-    required int id,
-    double? limitAmount,
-    DateTime? endDate,
-    double? alertThreshold,
+    required int categoryId,
+    required DateTime startDate,
+    required double limitAmount,
+    required DateTime endDate,
+    required double alertThreshold,
   }) async {
     final categories = await _categoryRepository.getCategories();
     final categoryMap = {for (final c in categories) c.id: c.name};
-    final response = await _apiService.put(
-      '${AppConfig.budgetsEndpoint}/$id',
+    final response = await _apiService.post(
+      AppConfig.budgetsEndpoint,
       data: {
-        if (limitAmount != null) 'limitAmount': limitAmount,
-        if (endDate != null) 'endDate': endDate.toIso8601String().split('T')[0],
-        if (alertThreshold != null) 'alertThreshold': alertThreshold,
+        'categoryId':     categoryId,
+        'limitAmount':    limitAmount,
+        'startDate':      startDate.toIso8601String().split('T')[0],
+        'endDate':        endDate.toIso8601String().split('T')[0],
+        'alertThreshold': alertThreshold,
       },
     );
     if (response.data['success'] == true) {

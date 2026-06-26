@@ -40,6 +40,8 @@ class _EditBudgetScreenState extends State<EditBudgetScreen> {
     final provider = context.read<BudgetProvider>();
     final ok = await provider.updateBudget(
       id:             widget.budget.id,
+      categoryId:     widget.budget.categoryId,
+      startDate:      widget.budget.startDate,
       limitAmount:    double.parse(_limitCtrl.text.trim()),
       endDate:        _endDate,
       alertThreshold: _alertThreshold,

@@ -62,17 +62,22 @@ class BudgetProvider with ChangeNotifier {
 
   Future<bool> updateBudget({
     required int id,
-    double? limitAmount,
-    DateTime? endDate,
-    double? alertThreshold,
+    required int categoryId,
+    required DateTime startDate,
+    required double limitAmount,
+    required DateTime endDate,
+    required double alertThreshold,
   }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       final updated = await _budgetRepository.updateBudget(
-        id: id, limitAmount: limitAmount,
-        endDate: endDate, alertThreshold: alertThreshold,
+        categoryId:     categoryId,
+        startDate:      startDate,
+        limitAmount:    limitAmount,
+        endDate:        endDate,
+        alertThreshold: alertThreshold,
       );
       final idx = _budgets.indexWhere((b) => b.id == id);
       if (idx != -1) _budgets[idx] = updated;
