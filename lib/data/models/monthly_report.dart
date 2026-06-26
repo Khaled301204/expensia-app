@@ -16,14 +16,18 @@ class MonthlyReport {
   });
 
   factory MonthlyReport.fromJson(Map<String, dynamic> json) {
-    final List raw = json['categoryBreakdown'] as List? ?? [];
+    final raw = json['categoryBreakdown'];
+    final List breakdown = raw is List ? raw : [];
     return MonthlyReport(
       month: json['month'] as int?,
       year: json['year'] as int?,
       totalExpenses: (json['totalExpenses'] as num?)?.toDouble() ?? 0.0,
       totalIncome:   (json['totalIncome']   as num?)?.toDouble() ?? 0.0,
       netSavings:    (json['netSavings']    as num?)?.toDouble() ?? 0.0,
-      categoryBreakdown: raw.map((e) => CategoryBreakdown.fromJson(e)).toList(),
+      categoryBreakdown: breakdown
+          .whereType<Map<String, dynamic>>()
+          .map(CategoryBreakdown.fromJson)
+          .toList(),
     );
   }
 

@@ -23,12 +23,11 @@ class ReportsRepository {
       return data.map((e) => e.toString()).toList();
     }
     if (data is Map) {
-      final list = data['recommendations'] as List?;
-      if (list != null) return list.map((e) => e.toString()).toList();
-      // Some backends return { message: "..." } per item
-      final items = data['items'] as List?;
-      if (items != null) {
-        return items.map<String>((e) =>
+      if (data['recommendations'] is List) {
+        return (data['recommendations'] as List).map((e) => e.toString()).toList();
+      }
+      if (data['items'] is List) {
+        return (data['items'] as List).map<String>((e) =>
           e is Map ? (e['message'] ?? e['text'] ?? e).toString() : e.toString()
         ).toList();
       }
