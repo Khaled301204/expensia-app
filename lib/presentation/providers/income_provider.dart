@@ -57,6 +57,34 @@ class IncomeProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> updateIncome({
+    required int id,
+    double? amount,
+    DateTime? date,
+    String? source,
+    String? frequency,
+    bool? isRecurring,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final updated = await _repository.updateIncome(
+        id: id, amount: amount, date: date,
+        source: source, frequency: frequency, isRecurring: isRecurring,
+      );
+      final idx = _incomes.indexWhere((i) => i.id == id);
+      if (idx != -1) _incomes[idx] = updated;
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> deleteIncome(int id) async {
     try {
       await _repository.deleteIncome(id);

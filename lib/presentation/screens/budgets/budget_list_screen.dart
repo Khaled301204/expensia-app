@@ -5,6 +5,7 @@ import '../../../routes/app_router.dart';
 import '../../../core/config/theme.dart';
 import '../../providers/budget_provider.dart';
 import '../../../data/models/budget.dart';
+import 'edit_budget_screen.dart';
 
 class BudgetListScreen extends StatefulWidget {
   const BudgetListScreen({super.key});
@@ -49,6 +50,7 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, i) => _BudgetCard(
                 budget: provider.budgets[i],
+                onEdit: () => _goEdit(provider.budgets[i]),
                 onDelete: () =>
                     _confirmDelete(context, provider, provider.budgets[i]),
               ),
@@ -63,6 +65,15 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
         label: const Text('New Budget'),
       ),
     );
+  }
+
+  void _goEdit(Budget budget) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditBudgetScreen(budget: budget)),
+    ).then((updated) {
+      if (updated == true && mounted) context.read<BudgetProvider>().loadBudgets();
+    });
   }
 
   Future<void> _confirmDelete(
@@ -93,9 +104,10 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
 
 class _BudgetCard extends StatelessWidget {
   final Budget budget;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _BudgetCard({required this.budget, required this.onDelete});
+  const _BudgetCard({required this.budget, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +165,10 @@ class _BudgetCard extends StatelessWidget {
                             fontSize: 11,
                             fontWeight: FontWeight.w600)),
                   ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, color: Colors.grey),
+                  onPressed: onEdit,
+                ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.grey),
                   onPressed: onDelete,

@@ -53,6 +53,30 @@ class BudgetRepository {
     throw Exception('Failed to create budget');
   }
 
+  Future<Budget> updateBudget({
+    required int id,
+    double? limitAmount,
+    DateTime? endDate,
+    double? alertThreshold,
+  }) async {
+    final categories = await _categoryRepository.getCategories();
+    final categoryMap = {for (final c in categories) c.id: c.name};
+    final response = await _apiService.put(
+      '${AppConfig.budgetsEndpoint}/$id',
+      data: {
+        if (limitAmount != null) 'limitAmount': limitAmount,
+        if (endDate != null) 'endDate': endDate.toIso8601String().split('T')[0],
+        if (alertThreshold != null) 'alertThreshold': alertThreshold,
+      },
+    );
+    if (response.data['success'] == true) {
+      final json = response.data['data'];
+      final catId = json['categoryId'] as int?;
+      return Budget.fromJson({...json, 'categoryName': categoryMap[catId] ?? 'Unknown'});
+    }
+    throw Exception(response.data['message'] ?? 'Failed to update budget');
+  }
+
   Future<void> deleteBudget(int id) async {
     await _apiService.delete('${AppConfig.budgetsEndpoint}/$id');
   }

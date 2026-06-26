@@ -5,6 +5,7 @@ import '../../../routes/app_router.dart';
 import '../../../core/config/theme.dart';
 import '../../providers/goal_provider.dart';
 import '../../../data/models/goal.dart';
+import 'edit_goal_screen.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -49,6 +50,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, i) => _GoalCard(
                 goal: provider.goals[i],
+                onEdit: () => _goEdit(provider.goals[i]),
                 onAddSavings: () =>
                     _showAddSavingsDialog(context, provider, provider.goals[i]),
                 onDelete: () =>
@@ -65,6 +67,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
         label: const Text('New Goal'),
       ),
     );
+  }
+
+  void _goEdit(Goal goal) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditGoalScreen(goal: goal)),
+    ).then((updated) {
+      if (updated == true && mounted) context.read<GoalProvider>().loadGoals();
+    });
   }
 
   Future<void> _showAddSavingsDialog(
@@ -137,11 +148,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
 class _GoalCard extends StatelessWidget {
   final Goal goal;
+  final VoidCallback onEdit;
   final VoidCallback onAddSavings;
   final VoidCallback onDelete;
 
   const _GoalCard({
     required this.goal,
+    required this.onEdit,
     required this.onAddSavings,
     required this.onDelete,
   });
@@ -209,6 +222,10 @@ class _GoalCard extends StatelessWidget {
                             fontSize: 11,
                             fontWeight: FontWeight.w600)),
                   ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, color: Colors.grey),
+                  onPressed: onEdit,
+                ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.grey),
                   onPressed: onDelete,

@@ -60,6 +60,32 @@ class BudgetProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> updateBudget({
+    required int id,
+    double? limitAmount,
+    DateTime? endDate,
+    double? alertThreshold,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final updated = await _budgetRepository.updateBudget(
+        id: id, limitAmount: limitAmount,
+        endDate: endDate, alertThreshold: alertThreshold,
+      );
+      final idx = _budgets.indexWhere((b) => b.id == id);
+      if (idx != -1) _budgets[idx] = updated;
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> deleteBudget(int id) async {
     try {
       await _budgetRepository.deleteBudget(id);

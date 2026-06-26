@@ -56,6 +56,31 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> updateGoal({
+    required int id,
+    String? name,
+    double? targetAmount,
+    DateTime? deadline,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final updated = await _goalRepository.updateGoal(
+        id: id, name: name, targetAmount: targetAmount, deadline: deadline,
+      );
+      final idx = _goals.indexWhere((g) => g.id == id);
+      if (idx != -1) _goals[idx] = updated;
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> addSavings(int goalId, double amount) async {
     try {
       final updatedGoal = await _goalRepository.addSavings(goalId, amount);

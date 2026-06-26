@@ -40,7 +40,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     _descriptionCtrl.text = e.description ?? '';
     _merchantCtrl.text    = e.merchant ?? '';
     _selectedDate         = e.date;
-    _selectedPayment      = e.paymentMethod ?? AppConstants.paymentMethods.first;
+    _selectedPayment      = _normalizePayment(e.paymentMethod);
     _selectedCategoryId   = e.categoryId;
     _loadCategories();
   }
@@ -51,6 +51,21 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     _descriptionCtrl.dispose();
     _merchantCtrl.dispose();
     super.dispose();
+  }
+
+  String _normalizePayment(String? raw) {
+    if (raw == null) return AppConstants.paymentMethods.first;
+    const map = {
+      'CASH': 'Cash',
+      'CREDIT_CARD': 'Credit Card',
+      'DEBIT_CARD': 'Debit Card',
+      'BANK_TRANSFER': 'Bank Transfer',
+      'MOBILE_PAYMENT': 'Mobile Payment',
+    };
+    final mapped = map[raw.toUpperCase()] ?? raw;
+    return AppConstants.paymentMethods.contains(mapped)
+        ? mapped
+        : AppConstants.paymentMethods.first;
   }
 
   Future<void> _loadCategories() async {

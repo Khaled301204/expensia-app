@@ -44,6 +44,26 @@ class GoalRepository {
     throw Exception('Failed to add savings');
   }
 
+  Future<Goal> updateGoal({
+    required int id,
+    String? name,
+    double? targetAmount,
+    DateTime? deadline,
+  }) async {
+    final response = await _apiService.put(
+      '${AppConfig.goalsEndpoint}/$id',
+      data: {
+        if (name != null) 'name': name,
+        if (targetAmount != null) 'targetAmount': targetAmount,
+        if (deadline != null) 'deadline': deadline.toIso8601String().split('T')[0],
+      },
+    );
+    if (response.data['success'] == true) {
+      return Goal.fromJson(response.data['data']);
+    }
+    throw Exception(response.data['message'] ?? 'Failed to update goal');
+  }
+
   Future<void> deleteGoal(int id) async {
     await _apiService.delete('${AppConfig.goalsEndpoint}/$id');
   }

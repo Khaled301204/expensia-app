@@ -39,6 +39,31 @@ class IncomeRepository {
     throw Exception(body['message'] ?? 'Failed to create income');
   }
 
+  Future<Income> updateIncome({
+    required int id,
+    double? amount,
+    DateTime? date,
+    String? source,
+    String? frequency,
+    bool? isRecurring,
+  }) async {
+    final response = await _apiService.put(
+      '${AppConfig.incomesEndpoint}/$id',
+      data: {
+        if (amount != null) 'amount': amount,
+        if (date != null) 'date': date.toIso8601String(),
+        if (source != null) 'source': source,
+        'frequency': frequency,
+        'isRecurring': isRecurring,
+      },
+    );
+    final body = response.data;
+    if (body is Map && body['success'] == true) {
+      return Income.fromJson(body['data']);
+    }
+    throw Exception(body['message'] ?? 'Failed to update income');
+  }
+
   Future<void> deleteIncome(int id) async {
     await _apiService.delete('${AppConfig.incomesEndpoint}/$id');
   }

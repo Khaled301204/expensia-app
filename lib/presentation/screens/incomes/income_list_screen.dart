@@ -6,6 +6,7 @@ import '../../../core/config/theme.dart';
 import '../../../routes/app_router.dart';
 import '../../providers/income_provider.dart';
 import '../../../data/models/income.dart';
+import 'edit_income_screen.dart';
 
 class IncomeListScreen extends StatefulWidget {
   const IncomeListScreen({super.key});
@@ -83,6 +84,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (_, i) => _IncomeTile(
                 income: provider.incomes[i],
+                onEdit: () => _goEdit(provider.incomes[i]),
                 onDelete: () => _confirmDelete(context, provider, provider.incomes[i]),
               ),
             ),
@@ -98,6 +100,15 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
         label: Text('Add Income', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
       ),
     );
+  }
+
+  void _goEdit(Income income) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditIncomeScreen(income: income)),
+    ).then((updated) {
+      if (updated == true && mounted) context.read<IncomeProvider>().loadIncomes();
+    });
   }
 
   Future<void> _confirmDelete(
@@ -134,8 +145,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
 class _IncomeTile extends StatelessWidget {
   final Income income;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
-  const _IncomeTile({required this.income, required this.onDelete});
+  const _IncomeTile({required this.income, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -192,10 +204,17 @@ class _IncomeTile extends StatelessWidget {
               color: AppTheme.secondaryColor, fontSize: 14, fontWeight: FontWeight.w700,
             )),
           const SizedBox(height: 4),
-          GestureDetector(
-            onTap: onDelete,
-            child: const Icon(Icons.delete_outline, color: AppTheme.darkTextMuted, size: 18),
-          ),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            GestureDetector(
+              onTap: onEdit,
+              child: const Icon(Icons.edit_outlined, color: AppTheme.darkTextMuted, size: 18),
+            ),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: onDelete,
+              child: const Icon(Icons.delete_outline, color: AppTheme.darkTextMuted, size: 18),
+            ),
+          ]),
         ]),
       ]),
     );
