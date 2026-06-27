@@ -219,16 +219,23 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(title, style: GoogleFonts.inter(
-        color: AppTheme.darkTextPri, fontSize: 17, fontWeight: FontWeight.w600,
-      )),
-      if (onSeeAll != null)
+      Expanded(
+        child: Text(title,
+          style: GoogleFonts.inter(
+            color: AppTheme.darkTextPri, fontSize: 17, fontWeight: FontWeight.w600,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      if (onSeeAll != null) ...[
+        const SizedBox(width: 8),
         GestureDetector(
           onTap: onSeeAll,
           child: Text('See all', style: GoogleFonts.inter(
             color: AppTheme.primaryColor, fontSize: 13, fontWeight: FontWeight.w500,
           )),
         ),
+      ],
     ],
   );
 }

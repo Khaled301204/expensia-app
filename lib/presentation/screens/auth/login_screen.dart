@@ -63,9 +63,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(width: 6, height: 6,
                     decoration: const BoxDecoration(color: AppTheme.primaryColor, shape: BoxShape.circle)),
                   const SizedBox(width: 8),
-                  Text('AI-Powered Finance', style: GoogleFonts.inter(
-                    color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.w500,
-                  )),
+                  Flexible(
+                    child: Text('AI-Powered Finance', style: GoogleFonts.inter(
+                      color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.w500,
+                    ), overflow: TextOverflow.ellipsis),
+                  ),
                 ]),
               ),
               const SizedBox(height: 24),

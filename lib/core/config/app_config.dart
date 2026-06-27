@@ -28,6 +28,8 @@ class AppConfig {
   static const String userMeEndpoint          = '/user/me';
   static const String exportCsvEndpoint       = '/reports/export/csv';
   static const String exportPdfEndpoint       = '/reports/export/pdf';
+  static const String forecastEndpointSpring  = '/reports/forecast';
+  static const String benchmarksEndpoint      = '/reports/benchmarks';
   
   // AI Service Endpoints
   static const String speechToTextEndpoint = '/speech-to-text';

@@ -34,4 +34,20 @@ class ReportsRepository {
     }
     return [];
   }
+
+  Future<Map<String, dynamic>?> getForecast() async {
+    final response = await _apiService.get(AppConfig.forecastEndpointSpring);
+    final body = response.data;
+    print('[FORECAST RESPONSE] $body'); // ignore: avoid_print
+    if (body is Map && body['success'] == true) return body['data'] as Map<String, dynamic>?;
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> getBenchmarks() async {
+    final response = await _apiService.get(AppConfig.benchmarksEndpoint);
+    final body = response.data;
+    print('[BENCHMARKS RESPONSE] $body'); // ignore: avoid_print
+    if (body is Map && body['success'] == true) return body['data'] as Map<String, dynamic>?;
+    return null;
+  }
 }
