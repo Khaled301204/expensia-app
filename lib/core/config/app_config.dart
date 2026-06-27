@@ -1,11 +1,10 @@
 class AppConfig {
   // API Configuration
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8080/api',
+  );
   static const String aiServiceUrl = 'http://localhost:8000/api';
-  
-  // Production URLs (uncomment for production)
-  // static const String baseUrl = 'https://api.expensia.com/api';
-  // static const String aiServiceUrl = 'https://ai.expensia.com/api';
   
   // API Endpoints
   static const String authEndpoint = '/auth';
