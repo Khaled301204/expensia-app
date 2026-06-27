@@ -376,7 +376,7 @@ class _RecordingView extends StatelessWidget {
                   .displaySmall
                   ?.copyWith(fontFamily: 'monospace')),
           const SizedBox(height: 8),
-          Text('Speak naturally â€” say the amount, what you bought, where.',
+          Text('Speak naturally — say the amount, what you bought, where.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 40),
@@ -604,7 +604,7 @@ class _AiBadge extends StatelessWidget {
               color: AppTheme.primaryColor, size: 20),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('AI extracted details â€” $pct',
+            child: Text('AI extracted details — $pct',
                 style: const TextStyle(color: AppTheme.primaryColor)),
           ),
         ],
