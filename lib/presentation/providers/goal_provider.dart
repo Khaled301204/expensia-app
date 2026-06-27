@@ -83,6 +83,23 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
+  Future<Goal?> withdrawSavings(int goalId, double amount) async {
+    _error = null;
+    try {
+      final updatedGoal = await _goalRepository.withdrawSavings(goalId, amount);
+      final index = _goals.indexWhere((g) => g.id == goalId);
+      if (index != -1) {
+        _goals[index] = updatedGoal;
+        notifyListeners();
+      }
+      return updatedGoal;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return null;
+    }
+  }
+
   /// Returns the updated [Goal] on success (check `.status == 'COMPLETED'`),
   /// or null on failure (check [error]).
   Future<Goal?> addSavings(int goalId, double amount) async {

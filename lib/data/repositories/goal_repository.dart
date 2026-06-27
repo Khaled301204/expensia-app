@@ -47,6 +47,17 @@ class GoalRepository {
     throw Exception(response.data['message'] ?? 'Failed to add savings');
   }
 
+  Future<Goal> withdrawSavings(int goalId, double amount) async {
+    final response = await _apiService.post(
+      '${AppConfig.goalsEndpoint}/$goalId/withdraw',
+      data: {'amount': amount},
+    );
+    if (response.data['success'] == true) {
+      return Goal.fromJson(response.data['data']);
+    }
+    throw Exception(response.data['message'] ?? 'Failed to withdraw savings');
+  }
+
   Future<Goal> updateGoal({
     required int id,
     String? name,

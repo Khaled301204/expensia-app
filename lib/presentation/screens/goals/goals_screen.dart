@@ -54,6 +54,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 onEdit: () => _goEdit(provider.goals[i]),
                 onAddSavings: () =>
                     _showAddSavingsDialog(provider, provider.goals[i]),
+                onWithdraw: () =>
+                    _showWithdrawDialog(provider, provider.goals[i]),
                 onDelete: () =>
                     _confirmDelete(provider, provider.goals[i]),
               ),
@@ -77,6 +79,80 @@ class _GoalsScreenState extends State<GoalsScreen> {
     ).then((updated) {
       if (updated == true && mounted) context.read<GoalProvider>().loadGoals();
     });
+  }
+
+  Future<void> _showWithdrawDialog(GoalProvider provider, Goal goal) async {
+    final controller = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text('Withdraw from "${goal.name}"'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Available to withdraw: EGP ${goal.currentAmount.toStringAsFixed(0)}',
+              style: const TextStyle(fontSize: 13, color: AppTheme.primaryColor),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: 'Amount (EGP)',
+                prefixText: 'EGP  ',
+                helperText: 'Max EGP ${goal.currentAmount.toStringAsFixed(0)}',
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, false),
+              child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentOrange),
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: const Text('Withdraw'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted || confirmed != true) return;
+
+    final amount = double.tryParse(controller.text.trim());
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid amount greater than zero')),
+      );
+      return;
+    }
+    if (amount > goal.currentAmount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(
+            'You can only withdraw up to EGP ${goal.currentAmount.toStringAsFixed(0)}')),
+      );
+      return;
+    }
+
+    final updatedGoal = await provider.withdrawSavings(goal.id, amount);
+    if (!mounted) return;
+
+    if (updatedGoal != null) {
+      context.read<WalletProvider>().loadWallet();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(
+            'EGP ${amount.toStringAsFixed(0)} withdrawn from ${goal.name}')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(provider.error ?? 'Failed to withdraw')),
+      );
+    }
   }
 
   Future<void> _showAddSavingsDialog(GoalProvider provider, Goal goal) async {
@@ -202,12 +278,14 @@ class _GoalCard extends StatelessWidget {
   final Goal goal;
   final VoidCallback onEdit;
   final VoidCallback onAddSavings;
+  final VoidCallback onWithdraw;
   final VoidCallback onDelete;
 
   const _GoalCard({
     required this.goal,
     required this.onEdit,
     required this.onAddSavings,
+    required this.onWithdraw,
     required this.onDelete,
   });
 
@@ -352,15 +430,34 @@ class _GoalCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (!isCompleted) ...[
+            if (!isCompleted || goal.currentAmount > 0) ...[
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: onAddSavings,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add Savings'),
-                ),
+              Row(
+                children: [
+                  if (!isCompleted) ...[
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onAddSavings,
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add Savings'),
+                      ),
+                    ),
+                    if (goal.currentAmount > 0) const SizedBox(width: 10),
+                  ],
+                  if (goal.currentAmount > 0)
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onWithdraw,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.accentOrange,
+                          side: BorderSide(
+                              color: AppTheme.accentOrange.withValues(alpha: 0.5)),
+                        ),
+                        icon: const Icon(Icons.arrow_upward, size: 18),
+                        label: const Text('Withdraw'),
+                      ),
+                    ),
+                ],
               ),
             ],
           ],
