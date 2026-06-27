@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/config/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -101,6 +102,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text('Member since ${DateFormat('MMM yyyy').format(user.createdAt)}',
                   style: GoogleFonts.inter(color: AppTheme.darkTextMuted, fontSize: 12)),
             ]),
+          ),
+          const SizedBox(height: 16),
+
+          // Appearance
+          Consumer<ThemeProvider>(builder: (_, themeProvider, __) =>
+            Container(
+              decoration: BoxDecoration(
+                color: AppTheme.darkCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppTheme.darkBorder),
+              ),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                secondary: Container(
+                  width: 38, height: 38,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    themeProvider.isDarkMode ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                    color: AppTheme.primaryColor, size: 20,
+                  ),
+                ),
+                title: Text('Dark Mode',
+                    style: GoogleFonts.inter(
+                        color: AppTheme.darkTextPri,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  themeProvider.isDarkMode ? 'Switch to light theme' : 'Switch to dark theme',
+                  style: GoogleFonts.inter(color: AppTheme.darkTextMuted, fontSize: 12),
+                ),
+                value: themeProvider.isDarkMode,
+                activeThumbColor: AppTheme.primaryColor,
+                activeTrackColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+                onChanged: (_) => themeProvider.toggleTheme(),
+              ),
+            ),
           ),
           const SizedBox(height: 24),
 

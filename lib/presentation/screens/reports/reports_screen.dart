@@ -65,6 +65,99 @@ class _ReportsScreenState extends State<ReportsScreen>
     }
   }
 
+  Future<void> _showExportDialog(String format) async {
+    DateTime? start;
+    DateTime? end;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (dialogCtx, setDlgState) {
+          final rangeValid = start != null && end != null && !end!.isBefore(start!);
+          return AlertDialog(
+            backgroundColor: AppTheme.darkElevated,
+            title: Text('Export ${format.toUpperCase()}',
+                style: GoogleFonts.inter(
+                    color: AppTheme.darkTextPri, fontWeight: FontWeight.w700)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Pick a date range or export all-time data.',
+                    style: GoogleFonts.inter(
+                        color: AppTheme.darkTextSec, fontSize: 13)),
+                const SizedBox(height: 20),
+                _DateTile(
+                  label: 'Start Date',
+                  date: start,
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: dialogCtx,
+                      initialDate: start ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) setDlgState(() => start = picked);
+                  },
+                ),
+                const SizedBox(height: 10),
+                _DateTile(
+                  label: 'End Date',
+                  date: end,
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: dialogCtx,
+                      initialDate: end ?? start ?? DateTime.now(),
+                      firstDate: start ?? DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) setDlgState(() => end = picked);
+                  },
+                ),
+                if (start != null && end != null && end!.isBefore(start!)) ...[
+                  const SizedBox(height: 8),
+                  Text('End date must be after start date',
+                      style: GoogleFonts.inter(
+                          color: AppTheme.errorColor, fontSize: 12)),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx, false),
+                  child: const Text('All Time')),
+              ElevatedButton(
+                  onPressed: rangeValid
+                      ? () => Navigator.pop(dialogCtx, true)
+                      : null,
+                  child: const Text('Export')),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (!mounted || confirmed == null) return;
+
+    final filename = format == 'csv' ? 'expense-report.csv' : 'expense-report.pdf';
+    final mimeType = format == 'csv' ? 'text/csv' : 'application/pdf';
+    final base = format == 'csv'
+        ? AppConfig.exportCsvEndpoint
+        : AppConfig.exportPdfEndpoint;
+
+    String endpoint = base;
+    if (confirmed && start != null && end != null) {
+      final fmt = DateFormat('yyyy-MM-dd');
+      endpoint =
+          '$base?startDate=${fmt.format(start!)}&endDate=${fmt.format(end!)}';
+    }
+
+    _export(endpoint, filename, mimeType);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,13 +185,7 @@ class _ReportsScreenState extends State<ReportsScreen>
               icon: const Icon(Icons.download_outlined),
               tooltip: 'Export',
               color: AppTheme.darkElevated,
-              onSelected: (v) {
-                if (v == 'csv') {
-                  _export(AppConfig.exportCsvEndpoint, 'expense-report.csv', 'text/csv');
-                } else {
-                  _export(AppConfig.exportPdfEndpoint, 'expense-report.pdf', 'application/pdf');
-                }
-              },
+              onSelected: (v) => _showExportDialog(v),
               itemBuilder: (_) => [
                 PopupMenuItem(value: 'csv',
                   child: Row(children: [
@@ -849,6 +936,62 @@ class _InvestmentCard extends StatelessWidget {
               color: AppTheme.darkTextMuted, fontSize: 12, height: 1.4)),
         ],
       ]),
+    );
+  }
+}
+
+// ── Export date range tile ─────────────────────────────────────────────────────
+
+class _DateTile extends StatelessWidget {
+  final String label;
+  final DateTime? date;
+  final VoidCallback onTap;
+  const _DateTile({required this.label, this.date, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = date != null;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.darkCard,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected
+                ? AppTheme.primaryColor.withValues(alpha: 0.4)
+                : AppTheme.darkBorder,
+          ),
+        ),
+        child: Row(children: [
+          Icon(Icons.calendar_today_outlined,
+              size: 16,
+              color: selected ? AppTheme.primaryColor : AppTheme.darkTextMuted),
+          const SizedBox(width: 10),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label,
+                style: GoogleFonts.inter(
+                    color: AppTheme.darkTextMuted, fontSize: 11)),
+            const SizedBox(height: 2),
+            Text(
+              selected
+                  ? DateFormat('MMM dd, yyyy').format(date!)
+                  : 'Tap to select',
+              style: GoogleFonts.inter(
+                color: selected ? AppTheme.darkTextPri : AppTheme.darkTextSec,
+                fontSize: 13,
+                fontWeight:
+                    selected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ]),
+          const Spacer(),
+          const Icon(Icons.chevron_right,
+              size: 16, color: AppTheme.darkTextMuted),
+        ]),
+      ),
     );
   }
 }
