@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/goal_provider.dart';
+import '../../providers/wallet_provider.dart';
 
 class AddGoalScreen extends StatefulWidget {
   const AddGoalScreen({super.key});
@@ -14,23 +15,29 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _targetController = TextEditingController();
+  final _initialController = TextEditingController();
   DateTime _deadline = DateTime.now().add(const Duration(days: 90));
 
   @override
   void initState() {
     super.initState();
     _targetController.addListener(() => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => context.read<WalletProvider>().loadWallet());
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _targetController.dispose();
+    _initialController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final walletSavings = context.watch<WalletProvider>().savings;
+
     return Scaffold(
       appBar: AppBar(title: const Text('New Savings Goal')),
       body: SingleChildScrollView(
@@ -52,6 +59,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                     v == null || v.trim().isEmpty ? 'Enter a goal name' : null,
               ),
               const SizedBox(height: 20),
+
               _label(context, 'Target Amount (EGP)'),
               const SizedBox(height: 8),
               TextFormField(
@@ -63,17 +71,52 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                   hintText: '0.00',
                 ),
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return 'Enter a target amount';
-                  }
+                  if (v == null || v.trim().isEmpty) return 'Enter a target amount';
                   final val = double.tryParse(v.trim());
-                  if (val == null || val <= 0) {
-                    return 'Enter a valid positive amount';
+                  if (val == null || val <= 0) return 'Enter a valid positive amount';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+
+              _label(context, 'Initial Savings (optional)'),
+              const SizedBox(height: 4),
+              Text(
+                'Available in wallet: EGP ${walletSavings.toStringAsFixed(0)}',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.primary),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _initialController,
+                enabled: walletSavings > 0,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  prefixText: 'EGP  ',
+                  hintText: '0.00',
+                  helperText: walletSavings > 0
+                      ? 'Max EGP ${walletSavings.toStringAsFixed(0)}'
+                      : 'No savings available in wallet',
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return null;
+                  final val = double.tryParse(v.trim());
+                  if (val == null || val < 0) return 'Enter a valid amount';
+                  if (val > walletSavings) {
+                    return 'Exceeds wallet balance (EGP ${walletSavings.toStringAsFixed(0)})';
+                  }
+                  final target = double.tryParse(_targetController.text.trim());
+                  if (target != null && val > target) {
+                    return 'Cannot exceed target amount';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
+
               _label(context, 'Target Deadline'),
               const SizedBox(height: 8),
               InkWell(
@@ -82,8 +125,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                 child: InputDecorator(
                   decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.calendar_today_outlined)),
-                  child:
-                      Text(DateFormat('MMM dd, yyyy').format(_deadline)),
+                  child: Text(DateFormat('MMM dd, yyyy').format(_deadline)),
                 ),
               ),
               const SizedBox(height: 12),
@@ -92,6 +134,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                 deadline: _deadline,
               ),
               const SizedBox(height: 32),
+
               Consumer<GoalProvider>(
                 builder: (context, provider, _) => SizedBox(
                   width: double.infinity,
@@ -139,23 +182,34 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final provider = context.read<GoalProvider>();
+    final initialText = _initialController.text.trim();
+    final initialAmount =
+        initialText.isEmpty ? null : double.tryParse(initialText);
+
     final success = await provider.createGoal(
       name: _nameController.text.trim(),
       targetAmount: double.parse(_targetController.text.trim()),
       deadline: _deadline,
+      currentAmount: (initialAmount != null && initialAmount > 0)
+          ? initialAmount
+          : null,
     );
 
-    if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Goal created successfully!')),
-        );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(provider.error ?? 'Failed to create goal')),
-        );
+    if (!mounted) return;
+
+    if (success) {
+      // Refresh wallet if initial amount was deducted
+      if (initialAmount != null && initialAmount > 0) {
+        context.read<WalletProvider>().loadWallet();
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Goal created successfully!')),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(provider.error ?? 'Failed to create goal')),
+      );
     }
   }
 }

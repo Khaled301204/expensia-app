@@ -33,6 +33,7 @@ class GoalProvider with ChangeNotifier {
     required String name,
     required double targetAmount,
     required DateTime deadline,
+    double? currentAmount,
   }) async {
     _isLoading = true;
     _error = null;
@@ -43,13 +44,14 @@ class GoalProvider with ChangeNotifier {
         name: name,
         targetAmount: targetAmount,
         deadline: deadline,
+        currentAmount: currentAmount,
       );
       _goals.add(goal);
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = e.toString().replaceFirst('Exception: ', '');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -81,7 +83,10 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> addSavings(int goalId, double amount) async {
+  /// Returns the updated [Goal] on success (check `.status == 'COMPLETED'`),
+  /// or null on failure (check [error]).
+  Future<Goal?> addSavings(int goalId, double amount) async {
+    _error = null;
     try {
       final updatedGoal = await _goalRepository.addSavings(goalId, amount);
       final index = _goals.indexWhere((g) => g.id == goalId);
@@ -89,11 +94,11 @@ class GoalProvider with ChangeNotifier {
         _goals[index] = updatedGoal;
         notifyListeners();
       }
-      return true;
+      return updatedGoal;
     } catch (e) {
-      _error = e.toString();
+      _error = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
-      return false;
+      return null;
     }
   }
 

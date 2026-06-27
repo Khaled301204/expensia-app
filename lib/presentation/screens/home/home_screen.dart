@@ -157,11 +157,16 @@ class _BalanceHeroCard extends StatelessWidget {
             ),
           ]),
           const SizedBox(height: 10),
-          Text(
-            'EGP ${_fmt(p.data.currentBalance)}',
-            style: GoogleFonts.inter(
-              color: AppTheme.darkTextPri, fontSize: 34,
-              fontWeight: FontWeight.w800, letterSpacing: -1.0,
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: p.data.currentBalance),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOut,
+            builder: (_, v, __) => Text(
+              'EGP ${_fmt(v)}',
+              style: GoogleFonts.inter(
+                color: AppTheme.darkTextPri, fontSize: 34,
+                fontWeight: FontWeight.w800, letterSpacing: -1.0,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -203,9 +208,17 @@ class _MiniStat extends StatelessWidget {
       Text(label, style: GoogleFonts.inter(color: AppTheme.darkTextSec, fontSize: 11)),
     ]),
     const SizedBox(height: 4),
-    Text('EGP ${value.toStringAsFixed(0)}', style: GoogleFonts.inter(
-      color: AppTheme.darkTextPri, fontSize: 13, fontWeight: FontWeight.w700,
-    )),
+    TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: value),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOut,
+      builder: (_, v, __) => Text(
+        'EGP ${v.toStringAsFixed(0)}',
+        style: GoogleFonts.inter(
+          color: AppTheme.darkTextPri, fontSize: 13, fontWeight: FontWeight.w700,
+        ),
+      ),
+    ),
   ]);
 }
 

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../routes/app_router.dart';
 import '../../../core/config/theme.dart';
 import '../../providers/goal_provider.dart';
+import '../../providers/wallet_provider.dart';
 import '../../../data/models/goal.dart';
 import 'edit_goal_screen.dart';
 
@@ -52,9 +53,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 goal: provider.goals[i],
                 onEdit: () => _goEdit(provider.goals[i]),
                 onAddSavings: () =>
-                    _showAddSavingsDialog(context, provider, provider.goals[i]),
+                    _showAddSavingsDialog(provider, provider.goals[i]),
                 onDelete: () =>
-                    _confirmDelete(context, provider, provider.goals[i]),
+                    _confirmDelete(provider, provider.goals[i]),
               ),
             ),
           );
@@ -78,62 +79,113 @@ class _GoalsScreenState extends State<GoalsScreen> {
     });
   }
 
-  Future<void> _showAddSavingsDialog(
-      BuildContext context, GoalProvider provider, Goal goal) async {
+  Future<void> _showAddSavingsDialog(GoalProvider provider, Goal goal) async {
+    final walletProvider = context.read<WalletProvider>();
+    await walletProvider.loadWallet();
+    if (!mounted) return;
+
+    final availableSavings = walletProvider.savings;
     final controller = TextEditingController();
+
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         title: Text('Add to "${goal.name}"'),
-        content: TextField(
-          controller: controller,
-          keyboardType:
-              const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Amount (EGP)',
-            prefixText: 'EGP  ',
-          ),
-          autofocus: true,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Available in wallet: EGP ${availableSavings.toStringAsFixed(0)}',
+              style: TextStyle(
+                  fontSize: 13,
+                  color: availableSavings > 0
+                      ? AppTheme.primaryColor
+                      : AppTheme.errorColor),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: 'Amount (EGP)',
+                prefixText: 'EGP  ',
+                helperText: availableSavings > 0
+                    ? 'Max EGP ${availableSavings.toStringAsFixed(0)}'
+                    : null,
+              ),
+              autofocus: true,
+              enabled: availableSavings > 0,
+            ),
+          ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(dialogCtx, false),
               child: const Text('Cancel')),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: availableSavings > 0
+                  ? () => Navigator.pop(dialogCtx, true)
+                  : null,
               child: const Text('Add')),
         ],
       ),
     );
 
-    if (confirmed == true && mounted) {
-      final amount = double.tryParse(controller.text.trim());
-      if (amount != null && amount > 0) {
-        await provider.addSavings(goal.id, amount);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    'EGP ${amount.toStringAsFixed(2)} added to ${goal.name}')),
-          );
-        }
-      }
+    if (!mounted || confirmed != true) return;
+
+    final amount = double.tryParse(controller.text.trim());
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid amount greater than zero')),
+      );
+      return;
+    }
+    if (amount > availableSavings) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                "You don't have enough savings (max EGP ${availableSavings.toStringAsFixed(0)})")),
+      );
+      return;
+    }
+
+    final updatedGoal = await provider.addSavings(goal.id, amount);
+    if (!mounted) return;
+
+    if (updatedGoal != null) {
+      walletProvider.loadWallet();
+      final isCompleted = updatedGoal.status == 'COMPLETED';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isCompleted
+              ? '🎉 Goal "${goal.name}" achieved!'
+              : 'EGP ${amount.toStringAsFixed(0)} added to ${goal.name}'),
+          backgroundColor:
+              isCompleted ? AppTheme.successColor : null,
+          duration: Duration(seconds: isCompleted ? 4 : 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(provider.error ?? 'Failed to add savings')),
+      );
     }
   }
 
-  Future<void> _confirmDelete(
-      BuildContext context, GoalProvider provider, Goal goal) async {
+  Future<void> _confirmDelete(GoalProvider provider, Goal goal) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         title: const Text('Delete Goal'),
         content: Text('Delete the goal "${goal.name}"?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(dialogCtx, false),
               child: const Text('Cancel')),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
             child: const Text('Delete'),
           ),
