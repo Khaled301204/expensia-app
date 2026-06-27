@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../data/models/monthly_report.dart';
+import '../../data/models/insights.dart';
 import '../../data/repositories/reports_repository.dart';
 
 class ReportsProvider with ChangeNotifier {
   final ReportsRepository _repository = ReportsRepository();
 
   MonthlyReport? _monthly;
-  List<String> _recommendations = [];
+  RecommendationsInsight? _recommendations;
   bool _isLoading = false;
   String? _error;
 
   MonthlyReport? get monthly => _monthly;
-  List<String> get recommendations => _recommendations;
+  RecommendationsInsight? get recommendations => _recommendations;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -25,7 +26,7 @@ class ReportsProvider with ChangeNotifier {
         _repository.getRecommendations(),
       ]);
       _monthly = results[0] as MonthlyReport;
-      _recommendations = results[1] as List<String>;
+      _recommendations = results[1] as RecommendationsInsight?;
     } catch (e) {
       _error = e.toString();
     } finally {

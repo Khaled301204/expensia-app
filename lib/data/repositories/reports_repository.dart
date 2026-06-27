@@ -1,4 +1,5 @@
 import '../models/monthly_report.dart';
+import '../models/insights.dart';
 import '../services/api_service.dart';
 import '../../core/config/app_config.dart';
 
@@ -13,32 +14,20 @@ class ReportsRepository {
     return MonthlyReport.empty();
   }
 
-  Future<List<String>> getRecommendations() async {
+  Future<RecommendationsInsight?> getRecommendations() async {
     final response = await _apiService.get(AppConfig.recommendationsEndpoint);
     final body = response.data;
     final data = (body is Map && body['success'] == true) ? body['data'] : body;
-
-    // Handle both List<String> and { recommendations: [...] }
-    if (data is List) {
-      return data.map((e) => e.toString()).toList();
-    }
     if (data is Map) {
-      if (data['recommendations'] is List) {
-        return (data['recommendations'] as List).map((e) => e.toString()).toList();
-      }
-      if (data['items'] is List) {
-        return (data['items'] as List).map<String>((e) =>
-          e is Map ? (e['message'] ?? e['text'] ?? e).toString() : e.toString()
-        ).toList();
-      }
+      return RecommendationsInsight.fromJson(
+          data is Map<String, dynamic> ? data : Map<String, dynamic>.from(data));
     }
-    return [];
+    return null;
   }
 
   Future<Map<String, dynamic>?> getForecast() async {
     final response = await _apiService.get(AppConfig.forecastEndpointSpring);
     final body = response.data;
-    print('[FORECAST RESPONSE] $body'); // ignore: avoid_print
     if (body is Map && body['success'] == true) return body['data'] as Map<String, dynamic>?;
     return null;
   }
@@ -46,7 +35,6 @@ class ReportsRepository {
   Future<Map<String, dynamic>?> getBenchmarks() async {
     final response = await _apiService.get(AppConfig.benchmarksEndpoint);
     final body = response.data;
-    print('[BENCHMARKS RESPONSE] $body'); // ignore: avoid_print
     if (body is Map && body['success'] == true) return body['data'] as Map<String, dynamic>?;
     return null;
   }
