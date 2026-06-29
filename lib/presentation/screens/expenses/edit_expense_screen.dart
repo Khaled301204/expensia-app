@@ -28,6 +28,8 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
   String   _selectedPayment = AppConstants.paymentMethods.first;
   DateTime _selectedDate    = DateTime.now();
   int?     _selectedCategoryId;
+  String?  _frequency;
+  bool     _recurringActive = true;
 
   List<Category> _categories = [];
   bool _loadingCategories = true;
@@ -42,6 +44,8 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
     _selectedDate         = e.date;
     _selectedPayment      = _normalizePayment(e.paymentMethod);
     _selectedCategoryId   = e.categoryId;
+    _frequency            = e.frequency;
+    _recurringActive      = e.recurringActive;
     _loadCategories();
   }
 
@@ -87,7 +91,9 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
       date:          _selectedDate,
       description:   _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
       merchant:      _merchantCtrl.text.trim().isEmpty ? null : _merchantCtrl.text.trim(),
-      paymentMethod: _selectedPayment,
+      paymentMethod:   _selectedPayment,
+      frequency:       widget.expense.isRecurring ? _frequency : null,
+      recurringActive: widget.expense.isRecurring ? _recurringActive : null,
     );
     if (!mounted) return;
     if (ok) {
@@ -205,6 +211,60 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                         DropdownMenuItem(value: m, child: Text(m))).toList(),
                     onChanged: (v) => setState(() => _selectedPayment = v!),
                   ),
+                  const SizedBox(height: 20),
+
+                  // Recurring section — only shown for recurring templates
+                  if (widget.expense.isRecurring) ...[
+                    _Label('Frequency'),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _frequency ?? 'MONTHLY',
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.calendar_month_outlined, size: 18)),
+                      items: const [
+                        DropdownMenuItem(value: 'DAILY',   child: Text('Daily')),
+                        DropdownMenuItem(value: 'WEEKLY',  child: Text('Weekly')),
+                        DropdownMenuItem(value: 'MONTHLY', child: Text('Monthly')),
+                        DropdownMenuItem(value: 'YEARLY',  child: Text('Yearly')),
+                      ],
+                      onChanged: (v) => setState(() => _frequency = v),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.darkCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.darkElevated),
+                      ),
+                      child: SwitchListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        secondary: Icon(
+                          _recurringActive ? Icons.repeat : Icons.pause_circle_outline,
+                          color: _recurringActive ? AppTheme.primaryColor : AppTheme.darkTextMuted,
+                          size: 20,
+                        ),
+                        title: Text(
+                          _recurringActive ? 'Active' : 'Paused',
+                          style: GoogleFonts.inter(
+                              color: AppTheme.darkTextPri,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        subtitle: Text(
+                          _recurringActive
+                              ? 'Expense recurs automatically'
+                              : 'No new copies will be created',
+                          style: GoogleFonts.inter(
+                              color: AppTheme.darkTextMuted, fontSize: 12),
+                        ),
+                        value: _recurringActive,
+                        activeThumbColor: AppTheme.primaryColor,
+                        activeTrackColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+                        onChanged: (v) => setState(() => _recurringActive = v),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 36),
 
                   Consumer<ExpenseProvider>(builder: (_, provider, __) =>

@@ -9,6 +9,9 @@ class Expense {
   final String? description;
   final String? merchant;
   final bool isRecurring;
+  final String? frequency;
+  final DateTime? nextOccurrence;
+  final bool recurringActive;
   final bool createdByVoice;
   final DateTime createdAt;
 
@@ -23,6 +26,9 @@ class Expense {
     this.description,
     this.merchant,
     this.isRecurring = false,
+    this.frequency,
+    this.nextOccurrence,
+    this.recurringActive = true,
     this.createdByVoice = false,
     required this.createdAt,
   });
@@ -39,6 +45,11 @@ class Expense {
       description: json['description'],
       merchant: json['merchant'],
       isRecurring: json['isRecurring'] ?? false,
+      frequency: json['frequency'],
+      nextOccurrence: json['nextOccurrence'] != null
+          ? DateTime.parse(json['nextOccurrence'])
+          : null,
+      recurringActive: json['recurringActive'] ?? true,
       createdByVoice: json['createdByVoice'] ?? false,
       createdAt: DateTime.parse(json['createdAt']),
     );

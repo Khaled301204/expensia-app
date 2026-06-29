@@ -34,6 +34,7 @@ class IncomeProvider with ChangeNotifier {
     required String source,
     String? frequency,
     bool isRecurring = false,
+    bool recurringActive = true,
   }) async {
     _isLoading = true;
     _error = null;
@@ -45,6 +46,7 @@ class IncomeProvider with ChangeNotifier {
         source: source,
         frequency: frequency,
         isRecurring: isRecurring,
+        recurringActive: recurringActive,
       );
       _incomes.insert(0, income);
       return true;
@@ -64,6 +66,7 @@ class IncomeProvider with ChangeNotifier {
     String? source,
     String? frequency,
     bool? isRecurring,
+    bool? recurringActive,
   }) async {
     _isLoading = true;
     _error = null;
@@ -71,7 +74,8 @@ class IncomeProvider with ChangeNotifier {
     try {
       final updated = await _repository.updateIncome(
         id: id, amount: amount, date: date,
-        source: source, frequency: frequency, isRecurring: isRecurring,
+        source: source, frequency: frequency,
+        isRecurring: isRecurring, recurringActive: recurringActive,
       );
       final idx = _incomes.indexWhere((i) => i.id == id);
       if (idx != -1) _incomes[idx] = updated;

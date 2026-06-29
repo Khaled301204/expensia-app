@@ -21,6 +21,7 @@ class IncomeRepository {
     required String source,
     String? frequency,
     bool isRecurring = false,
+    bool recurringActive = true,
   }) async {
     final response = await _apiService.post(
       AppConfig.incomesEndpoint,
@@ -30,6 +31,7 @@ class IncomeRepository {
         'source': source,
         if (frequency != null) 'frequency': frequency,
         'isRecurring': isRecurring,
+        if (isRecurring) 'recurringActive': recurringActive,
       },
     );
     final body = response.data;
@@ -46,6 +48,7 @@ class IncomeRepository {
     String? source,
     String? frequency,
     bool? isRecurring,
+    bool? recurringActive,
   }) async {
     final response = await _apiService.put(
       '${AppConfig.incomesEndpoint}/$id',
@@ -53,8 +56,9 @@ class IncomeRepository {
         if (amount != null) 'amount': amount,
         if (date != null) 'date': date.toIso8601String(),
         if (source != null) 'source': source,
-        'frequency': frequency,
-        'isRecurring': isRecurring,
+        if (frequency != null) 'frequency': frequency,
+        if (isRecurring != null) 'isRecurring': isRecurring,
+        if (recurringActive != null) 'recurringActive': recurringActive,
       },
     );
     final body = response.data;

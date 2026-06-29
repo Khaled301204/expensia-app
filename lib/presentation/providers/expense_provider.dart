@@ -50,6 +50,9 @@ class ExpenseProvider with ChangeNotifier {
     String? description,
     String? merchant,
     String? paymentMethod,
+    bool isRecurring = false,
+    String? frequency,
+    bool recurringActive = true,
   }) async {
     _isLoading = true;
     _error = null;
@@ -62,6 +65,9 @@ class ExpenseProvider with ChangeNotifier {
         description: description,
         merchant: merchant,
         paymentMethod: paymentMethod,
+        isRecurring: isRecurring,
+        frequency: frequency,
+        recurringActive: recurringActive,
       );
       _expenses.insert(0, expense);
       _isLoading = false;
@@ -121,6 +127,8 @@ class ExpenseProvider with ChangeNotifier {
     String? description,
     String? merchant,
     String? paymentMethod,
+    String? frequency,
+    bool? recurringActive,
   }) async {
     _isLoading = true;
     _error = null;
@@ -134,6 +142,8 @@ class ExpenseProvider with ChangeNotifier {
         description: description,
         merchant: merchant,
         paymentMethod: paymentMethod,
+        frequency: frequency,
+        recurringActive: recurringActive,
       );
       final idx = _expenses.indexWhere((e) => e.id == id);
       if (idx != -1) _expenses[idx] = updated;

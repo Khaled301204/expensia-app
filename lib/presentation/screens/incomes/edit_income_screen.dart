@@ -19,9 +19,10 @@ class _EditIncomeScreenState extends State<EditIncomeScreen> {
   final _amountCtrl = TextEditingController();
   final _sourceCtrl = TextEditingController();
 
-  DateTime _selectedDate = DateTime.now();
-  bool     _isRecurring  = false;
+  DateTime _selectedDate    = DateTime.now();
+  bool     _isRecurring     = false;
   String?  _frequency;
+  bool     _recurringActive = true;
 
   static const _frequencies = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
   static const _freqLabels  = {'DAILY': 'Daily', 'WEEKLY': 'Weekly', 'MONTHLY': 'Monthly', 'YEARLY': 'Yearly'};
@@ -33,8 +34,9 @@ class _EditIncomeScreenState extends State<EditIncomeScreen> {
     _amountCtrl.text = i.amount.toStringAsFixed(2);
     _sourceCtrl.text = i.source;
     _selectedDate    = i.date;
-    _isRecurring     = i.isRecurring;
-    _frequency       = i.frequency ?? 'MONTHLY';
+    _isRecurring      = i.isRecurring;
+    _frequency        = i.frequency ?? 'MONTHLY';
+    _recurringActive  = i.recurringActive;
   }
 
   @override
@@ -52,8 +54,9 @@ class _EditIncomeScreenState extends State<EditIncomeScreen> {
       amount:      double.parse(_amountCtrl.text.trim()),
       date:        _selectedDate,
       source:      _sourceCtrl.text.trim(),
-      frequency:   _isRecurring ? _frequency : null,
-      isRecurring: _isRecurring,
+      frequency:       _isRecurring ? _frequency : null,
+      isRecurring:     _isRecurring,
+      recurringActive: _isRecurring ? _recurringActive : null,
     );
     if (!mounted) return;
     if (ok) {
@@ -154,6 +157,40 @@ class _EditIncomeScreenState extends State<EditIncomeScreen> {
                 items: _frequencies.map((f) =>
                     DropdownMenuItem(value: f, child: Text(_freqLabels[f]!))).toList(),
                 onChanged: (v) => setState(() => _frequency = v),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.darkCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.darkElevated),
+                ),
+                child: SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  secondary: Icon(
+                    _recurringActive ? Icons.repeat : Icons.pause_circle_outline,
+                    color: _recurringActive ? AppTheme.secondaryColor : AppTheme.darkTextMuted,
+                    size: 20,
+                  ),
+                  title: Text(
+                    _recurringActive ? 'Active' : 'Paused',
+                    style: GoogleFonts.inter(
+                        color: AppTheme.darkTextPri,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(
+                    _recurringActive
+                        ? 'Income recurs automatically'
+                        : 'No new copies will be created',
+                    style: GoogleFonts.inter(
+                        color: AppTheme.darkTextMuted, fontSize: 12),
+                  ),
+                  value: _recurringActive,
+                  activeThumbColor: AppTheme.secondaryColor,
+                  activeTrackColor: AppTheme.secondaryColor.withValues(alpha: 0.4),
+                  onChanged: (v) => setState(() => _recurringActive = v),
+                ),
               ),
             ],
             const SizedBox(height: 36),

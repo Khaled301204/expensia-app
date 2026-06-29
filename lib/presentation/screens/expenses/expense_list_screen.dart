@@ -908,6 +908,44 @@ class _ExpenseTile extends StatelessWidget {
                       style: GoogleFonts.inter(
                           color: AppTheme.darkTextMuted, fontSize: 11)),
                 ]),
+                if (expense.isRecurring) ...[
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    Icon(
+                      expense.recurringActive
+                          ? Icons.repeat
+                          : Icons.pause_circle_outline,
+                      size: 12,
+                      color: expense.recurringActive
+                          ? AppTheme.primaryColor
+                          : AppTheme.darkTextMuted,
+                    ),
+                    const SizedBox(width: 4),
+                    if (expense.frequency != null)
+                      Text(
+                        _capitalize(expense.frequency!),
+                        style: GoogleFonts.inter(
+                            color: AppTheme.primaryColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    if (!expense.recurringActive) ...[
+                      const SizedBox(width: 6),
+                      Text('Paused',
+                          style: GoogleFonts.inter(
+                              color: AppTheme.darkTextMuted,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500)),
+                    ] else if (expense.nextOccurrence != null) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        'Next: ${DateFormat('MMM dd').format(expense.nextOccurrence!)}',
+                        style: GoogleFonts.inter(
+                            color: AppTheme.darkTextMuted, fontSize: 11),
+                      ),
+                    ],
+                  ]),
+                ],
               ]),
         ),
 
@@ -1015,6 +1053,9 @@ class _EmptyExpenses extends StatelessWidget {
         ]),
       );
 }
+
+String _capitalize(String s) =>
+    s.isEmpty ? s : s[0].toUpperCase() + s.substring(1).toLowerCase();
 
 class _ErrorView extends StatelessWidget {
   final String message;

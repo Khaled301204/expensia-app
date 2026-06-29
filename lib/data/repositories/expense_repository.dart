@@ -72,6 +72,9 @@ class ExpenseRepository {
     String? description,
     String? merchant,
     String? paymentMethod,
+    bool isRecurring = false,
+    String? frequency,
+    bool recurringActive = true,
   }) async {
     final catMapFuture = _categoryMap();
     final response = await _apiService.post(
@@ -82,6 +85,9 @@ class ExpenseRepository {
         'description': description,
         'merchant': merchant,
         'paymentMethod': paymentMethod,
+        if (isRecurring) 'isRecurring': true,
+        if (isRecurring && frequency != null) 'frequency': frequency,
+        if (isRecurring) 'recurringActive': recurringActive,
       },
     );
 
@@ -129,6 +135,8 @@ class ExpenseRepository {
     String? description,
     String? merchant,
     String? paymentMethod,
+    String? frequency,
+    bool? recurringActive,
   }) async {
     final catMapFuture = _categoryMap();
     final response = await _apiService.put(
@@ -140,6 +148,8 @@ class ExpenseRepository {
         if (description != null) 'description': description,
         if (merchant != null) 'merchant': merchant,
         if (paymentMethod != null) 'paymentMethod': paymentMethod,
+        if (frequency != null) 'frequency': frequency,
+        if (recurringActive != null) 'recurringActive': recurringActive,
       },
     );
 

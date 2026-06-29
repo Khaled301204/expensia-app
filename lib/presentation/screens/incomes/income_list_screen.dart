@@ -185,14 +185,31 @@ class _IncomeTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                  color: (income.recurringActive
+                      ? AppTheme.secondaryColor
+                      : AppTheme.darkTextMuted).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(_friendlyFrequency(income.frequency!),
                   style: GoogleFonts.inter(
-                    color: AppTheme.secondaryColor, fontSize: 10, fontWeight: FontWeight.w600,
+                    color: income.recurringActive
+                        ? AppTheme.secondaryColor
+                        : AppTheme.darkTextMuted,
+                    fontSize: 10, fontWeight: FontWeight.w600,
                   )),
               ),
+              if (!income.recurringActive) ...[
+                const SizedBox(width: 6),
+                Text('· Paused',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.darkTextMuted, fontSize: 11)),
+              ] else if (income.nextOccurrence != null) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '· Next: ${DateFormat('MMM dd').format(income.nextOccurrence!)}',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.darkTextMuted, fontSize: 11)),
+              ],
             ],
           ]),
         ])),

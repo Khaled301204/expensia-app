@@ -123,7 +123,8 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
               const Spacer(),
               Switch(
                 value: _isRecurring,
-                activeColor: AppTheme.secondaryColor,
+                activeThumbColor: AppTheme.secondaryColor,
+                activeTrackColor: AppTheme.secondaryColor.withValues(alpha: 0.4),
                 onChanged: (v) => setState(() {
                   _isRecurring = v;
                   if (!v) _frequency = null;
@@ -213,8 +214,9 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
       amount: double.parse(_amountCtrl.text.trim()),
       date: _date,
       source: _sourceCtrl.text,
-      frequency: _isRecurring ? _frequency : null,
-      isRecurring: _isRecurring,
+      frequency:       _isRecurring ? _frequency : null,
+      isRecurring:     _isRecurring,
+      recurringActive: _isRecurring,
     );
 
     if (!mounted) return;

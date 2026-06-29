@@ -25,6 +25,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   String   _selectedPayment = AppConstants.paymentMethods.first;
   DateTime _selectedDate    = DateTime.now();
+  bool     _isRecurring     = false;
+  String   _frequency       = 'MONTHLY';
   bool     _parsing         = false;
   bool     _showParseBar    = false;
 
@@ -82,11 +84,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (!_formKey.currentState!.validate()) return;
     final provider = context.read<ExpenseProvider>();
     final ok = await provider.createExpense(
-      amount:        double.parse(_amountCtrl.text.trim()),
-      date:          _selectedDate,
-      description:   _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
-      merchant:      _merchantCtrl.text.trim().isEmpty ? null : _merchantCtrl.text.trim(),
-      paymentMethod: _selectedPayment,
+      amount:          double.parse(_amountCtrl.text.trim()),
+      date:            _selectedDate,
+      description:     _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
+      merchant:        _merchantCtrl.text.trim().isEmpty ? null : _merchantCtrl.text.trim(),
+      paymentMethod:   _selectedPayment,
+      isRecurring:     _isRecurring,
+      frequency:       _isRecurring ? _frequency : null,
+      recurringActive: _isRecurring,
     );
     if (!mounted) return;
     if (ok) {
@@ -253,6 +258,41 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     DropdownMenuItem(value: m, child: Text(m))).toList(),
                 onChanged: (v) => setState(() => _selectedPayment = v!),
               ),
+              const SizedBox(height: 20),
+
+              // Recurring toggle
+              Row(children: [
+                const Icon(Icons.repeat, size: 18, color: AppTheme.darkTextSec),
+                const SizedBox(width: 10),
+                Text('Recurring expense', style: GoogleFonts.inter(
+                    color: AppTheme.darkTextPri, fontSize: 14, fontWeight: FontWeight.w500)),
+                const Spacer(),
+                Switch(
+                  value: _isRecurring,
+                  activeThumbColor: AppTheme.primaryColor,
+                  activeTrackColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+                  onChanged: (v) => setState(() => _isRecurring = v),
+                ),
+              ]),
+
+              if (_isRecurring) ...[
+                const SizedBox(height: 12),
+                _Label('Frequency'),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _frequency,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.calendar_month_outlined, size: 18)),
+                  items: const [
+                    DropdownMenuItem(value: 'DAILY',   child: Text('Daily')),
+                    DropdownMenuItem(value: 'WEEKLY',  child: Text('Weekly')),
+                    DropdownMenuItem(value: 'MONTHLY', child: Text('Monthly')),
+                    DropdownMenuItem(value: 'YEARLY',  child: Text('Yearly')),
+                  ],
+                  onChanged: (v) => setState(() => _frequency = v!),
+                ),
+              ],
               const SizedBox(height: 36),
 
               Consumer<ExpenseProvider>(builder: (_, provider, __) =>

@@ -6,6 +6,8 @@ class Income {
   final String source;
   final String? frequency;
   final bool isRecurring;
+  final DateTime? nextOccurrence;
+  final bool recurringActive;
 
   Income({
     required this.id,
@@ -15,6 +17,8 @@ class Income {
     required this.source,
     this.frequency,
     this.isRecurring = false,
+    this.nextOccurrence,
+    this.recurringActive = true,
   });
 
   factory Income.fromJson(Map<String, dynamic> json) {
@@ -26,6 +30,10 @@ class Income {
       source: json['source'],
       frequency: json['frequency'],
       isRecurring: json['isRecurring'] ?? false,
+      nextOccurrence: json['nextOccurrence'] != null
+          ? DateTime.parse(json['nextOccurrence'])
+          : null,
+      recurringActive: json['recurringActive'] ?? true,
     );
   }
 
