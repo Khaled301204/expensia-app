@@ -4,6 +4,9 @@ import 'core/config/theme.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'routes/app_router.dart';
 
+// Global key used by ApiService to navigate to login on session expiry.
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class ExpensiaApp extends StatelessWidget {
   const ExpensiaApp({super.key});
 
@@ -14,6 +17,7 @@ class ExpensiaApp extends StatelessWidget {
         return MaterialApp(
           title: 'Expensia',
           debugShowCheckedModeBanner: false,
+          navigatorKey: navigatorKey,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,

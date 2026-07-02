@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../../app.dart';
 import '../../core/config/app_config.dart';
 import '../../core/constants/api_constants.dart';
+import '../../routes/app_router.dart';
 import 'storage_service.dart';
 
 class ApiService {
@@ -31,10 +33,16 @@ class ApiService {
           return handler.next(options);
         },
         onError: (error, handler) async {
-          // Handle 401 Unauthorized
           if (error.response?.statusCode == ApiConstants.unauthorized) {
-            await _storageService.clearAll();
-            // Navigate to login (implement navigation logic)
+            final path = error.requestOptions.path;
+            // Don't redirect when the 401 comes from auth endpoints themselves
+            // (e.g. wrong password on login returns 401 too).
+            final isAuthCall = path.contains('/auth/');
+            if (!isAuthCall) {
+              await _storageService.clearAll();
+              navigatorKey.currentState
+                  ?.pushNamedAndRemoveUntil(AppRouter.login, (_) => false);
+            }
           }
           return handler.next(error);
         },
